@@ -36,7 +36,7 @@ export default function Home() {
         {/* Eyebrow tag */}
         <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Daily market intel for high-earning women
+          Daily market intel for you
         </div>
 
         <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.08] tracking-tight max-w-4xl mb-6 text-[#1a1a1a]">
@@ -47,8 +47,7 @@ export default function Home() {
 
         <p className="text-lg md:text-xl text-[#1a1a1a]/50 max-w-xl leading-relaxed mb-10">
           I watch the markets so you don't have to — and I'll tell you exactly
-          how it affects your high-earning, cash-strapped, beautifully
-          complicated life.
+          how it affects your complicated life.
         </p>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -63,7 +62,7 @@ export default function Home() {
 
         {/* Social proof strip */}
         <div className="mt-16 flex flex-wrap items-center gap-6 text-[#1a1a1a]/30 text-sm border-t border-[#1a1a1a]/5 pt-10">
-          <span>📍 Built for NYC · LA · SF · DC · Chicago</span>
+          <span>📍 Built for anyone anywhere</span>
           <span className="hidden sm:block">·</span>
           <span>💼 Corporate, Tech, Finance, Law, Healthcare</span>
           <span className="hidden sm:block">·</span>
@@ -143,7 +142,7 @@ export default function Home() {
             <span className="text-emerald-600">Start understanding it.</span>
           </h2>
           <p className="text-[#1a1a1a]/45 mb-8 text-base leading-relaxed">
-            Join thousands of high-earning women who get the markets decoded in
+            Join thousands of high-earning people  who get the markets decoded in
             their inbox — every weekday morning, in under 5 minutes.
           </p>
           <a
