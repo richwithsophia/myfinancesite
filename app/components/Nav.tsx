@@ -33,7 +33,7 @@ export default function Nav() {
 
         {/* Logo */}
         <a href="/" style={{ fontFamily: C.serif, fontSize: "1.2rem", fontWeight: 700, color: C.text, textDecoration: "none" }}>
-          Rich <span style={{ color: C.green }}>with Sophia</span>
+          <span style={{ color: C.green }}>Rich</span> with Sophia
         </a>
 
         {/* Links */}

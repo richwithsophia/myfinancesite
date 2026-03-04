@@ -1,13 +1,13 @@
 "use client";
 
 import Nav from "../components/Nav";
+import Footer from "../components/Footer";
 
 const C = {
   bg: "#FAFAF7", card: "#F2F0EB", text: "#1A1A1A",
   muted: "#6B6760", green: "#2D6A4F", coral: "#E07A5F",
   border: "#E5E2DC", serif: "'Playfair Display', serif", sans: "'Inter', sans-serif",
 };
-const lbl = { fontFamily: C.sans, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: C.muted };
 
 const tools = [
   {
@@ -38,10 +38,10 @@ const tools = [
 
 export default function ToolsPage() {
   return (
-    <div style={{ backgroundColor: C.bg, color: C.text, fontFamily: C.sans, minHeight: "100vh" }}>
+    <div style={{ backgroundColor: C.bg, color: C.text, fontFamily: C.sans, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Nav />
 
-      <main style={{ maxWidth: 1152, margin: "0 auto", padding: "8rem 1.5rem 5rem" }}>
+      <main style={{ maxWidth: 1152, margin: "0 auto", padding: "8rem 1.5rem 5rem", width: "100%", flex: 1 }}>
 
         {/* ── HEADER ── */}
         <div style={{ marginBottom: "3.5rem" }}>
@@ -49,8 +49,7 @@ export default function ToolsPage() {
             ⚡ Financial Tools
           </div>
           <h1 style={{ fontFamily: C.serif, fontSize: "clamp(2.2rem, 4vw, 3rem)", fontWeight: 700, color: C.text, lineHeight: 1.1, marginBottom: "1rem" }}>
-            Tools that do the{" "}
-            <span style={{ color: C.green }}>math for you.</span>
+            Tools that do the <span style={{ color: C.green }}>math for you.</span>
           </h1>
           <p style={{ fontSize: "1.05rem", lineHeight: 1.75, color: C.muted, maxWidth: 520 }}>
             Free calculators built for high earners who are too busy to mess around with spreadsheets.
@@ -99,18 +98,7 @@ export default function ToolsPage() {
 
       </main>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2.5rem 1.5rem", fontFamily: C.sans }}>
-        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-          <span style={{ fontFamily: C.serif, fontWeight: 700, color: C.muted }}>Rich <span style={{ color: C.green }}>with Sophia</span></span>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
-            {[["Home","/"],["Daily Brief","/daily-brief"],["Tools","/tools"],["About","/about"]].map(([l,h]) => (
-              <a key={l} href={h} style={{ color: C.muted, fontSize: "0.875rem", textDecoration: "none" }}>{l}</a>
-            ))}
-          </div>
-          <a href="#" style={{ color: C.muted, fontSize: "0.82rem", textDecoration: "underline" }}>Unsubscribe anytime</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
