@@ -65,7 +65,7 @@ export default function HomePage() {
             </div>
 
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: "2rem", display: "flex", flexWrap: "wrap", gap: "1.5rem" }}>
-              {["📍 NYC · LA · SF · DC · Chicago", "💼 Corporate, Tech, Finance, Law, Healthcare", "📊 Zero jargon, all signal"].map((item, i) => (
+              {["📍 Updates for anyone, anywhere", "💼 Corporate, Tech, Finance, Law, Healthcare", "📊 Zero jargon, all signal"].map((item, i) => (
                 <span key={i} style={{ fontSize: "0.85rem", color: C.muted }}>{item}</span>
               ))}
             </div>
