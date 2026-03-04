@@ -3,6 +3,14 @@
 import { useState, useMemo } from "react";
 import Nav from "../../components/Nav";
 
+const C = {
+  bg: "#FAFAF7", card: "#F2F0EB", text: "#1A1A1A",
+  muted: "#6B6760", green: "#2D6A4F", coral: "#E07A5F",
+  red: "#C1440E", border: "#E5E2DC",
+  serif: "'Playfair Display', serif", sans: "'Inter', sans-serif",
+};
+const lbl = { fontFamily: C.sans, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: C.muted };
+
 type Field = { id: string; label: string; hint: string };
 
 const ASSET_FIELDS: Field[] = [
@@ -29,34 +37,29 @@ function parseVal(s: string) {
   const n = parseFloat(s.replace(/[^0-9.]/g, ""));
   return isNaN(n) ? 0 : n;
 }
-function getMessage(netWorth: number, hasInput: boolean): { text: string; color: string } {
-  if (!hasInput) return { text: "Fill in your numbers — no judgment, just math. 💛", color: "text-[#1a1a1a]/50" };
-  if (netWorth >= 500_000) return { text: "You're building serious wealth. Keep compounding. 🚀", color: "text-emerald-700" };
-  if (netWorth >= 100_000) return { text: "Six figures — a real milestone. Keep investing. 💪", color: "text-emerald-700" };
-  if (netWorth >= 0)       return { text: "Positive territory. Every dollar invested compounds from here. 🌱", color: "text-emerald-700" };
-  if (netWorth >= -50_000) return { text: "Negative net worth is common with student loans. Track monthly and watch it climb. 📈", color: "text-amber-700" };
-  return { text: "Awareness is step one. Focus on high-interest debt first. You've got this. 🧡", color: "text-amber-700" };
+function getMessage(nw: number, has: boolean): { text: string; color: string } {
+  if (!has)       return { text: "Fill in your numbers — no judgment, just math. 💛",                                    color: C.muted };
+  if (nw >= 500000) return { text: "You're building serious wealth. Keep compounding. 🚀",                              color: C.green };
+  if (nw >= 100000) return { text: "Six figures — a real milestone. Keep investing. 💪",                                color: C.green };
+  if (nw >= 0)      return { text: "Positive territory. Every dollar invested compounds from here. 🌱",                 color: C.green };
+  if (nw >= -50000) return { text: "Negative net worth is common with student loans. Track monthly and watch it climb. 📈", color: "#B45309" };
+  return              { text: "Awareness is step one. Focus on high-interest debt first. You've got this. 🧡",           color: "#B45309" };
 }
 
-function MoneyInput({ field, value, onChange }: { field: Field; value: string; onChange: (id: string, val: string) => void }) {
+function MoneyInput({ field, value, onChange }: { field: Field; value: string; onChange: (id: string, v: string) => void }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 min-w-0">
-        <label className="text-sm font-semibold text-[#1a1a1a]">{field.label}</label>
-        <p className="text-xs text-[#1a1a1a]/50 leading-snug mt-0.5">{field.hint}</p>
+    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <label style={{ fontSize: "0.875rem", fontWeight: 600, color: C.text, display: "block" }}>{field.label}</label>
+        <p style={{ fontSize: "0.75rem", color: C.muted, marginTop: "0.2rem", lineHeight: 1.4 }}>{field.hint}</p>
       </div>
-      <div className={`flex items-center border-2 rounded-xl px-3 py-2 w-36 flex-shrink-0 transition-all ${focused ? "border-emerald-500 ring-2 ring-emerald-100 bg-white" : "border-[#1a1a1a]/15 bg-white"}`}>
-        <span className="text-[#1a1a1a]/40 text-sm mr-1 font-medium">$</span>
-        <input
-          type="number"
-          min="0"
-          placeholder="0"
-          value={value}
+      <div style={{ display: "flex", alignItems: "center", border: `2px solid ${focused ? C.green : C.border}`, borderRadius: "0.625rem", padding: "0.4rem 0.75rem", width: "9rem", flexShrink: 0, backgroundColor: "#fff", boxShadow: focused ? `0 0 0 3px ${C.green}18` : "none", transition: "all 0.15s" }}>
+        <span style={{ color: C.muted, fontSize: "0.875rem", marginRight: "0.25rem" }}>$</span>
+        <input type="number" min="0" placeholder="0" value={value}
           onChange={e => onChange(field.id, e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className="flex-1 bg-transparent text-sm font-semibold text-[#1a1a1a] placeholder-[#1a1a1a]/25 outline-none w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: "0.875rem", fontWeight: 600, color: C.text, fontFamily: C.sans, width: "100%" }}
         />
       </div>
     </div>
@@ -64,111 +67,109 @@ function MoneyInput({ field, value, onChange }: { field: Field; value: string; o
 }
 
 export default function NetWorthCalculator() {
-  const [assets, setAssets]     = useState<Record<string, string>>({});
-  const [liabilities, setLiabs] = useState<Record<string, string>>({});
+  const [assets, setAssets]   = useState<Record<string, string>>({});
+  const [liabs,  setLiabs]    = useState<Record<string, string>>({});
 
   const totalAssets = useMemo(() => ASSET_FIELDS.reduce((s, f) => s + parseVal(assets[f.id] ?? ""), 0), [assets]);
-  const totalLiabs  = useMemo(() => LIABILITY_FIELDS.reduce((s, f) => s + parseVal(liabilities[f.id] ?? ""), 0), [liabilities]);
+  const totalLiabs  = useMemo(() => LIABILITY_FIELDS.reduce((s, f) => s + parseVal(liabs[f.id] ?? ""), 0), [liabs]);
   const netWorth    = totalAssets - totalLiabs;
-
-  const hasInput = totalAssets > 0 || totalLiabs > 0;
-  const assetPct = hasInput ? Math.round((totalAssets / (totalAssets + totalLiabs || 1)) * 100) : 50;
-  const message  = getMessage(netWorth, hasInput);
+  const hasInput    = totalAssets > 0 || totalLiabs > 0;
+  const assetPct    = hasInput ? Math.round((totalAssets / (totalAssets + totalLiabs || 1)) * 100) : 50;
+  const msg         = getMessage(netWorth, hasInput);
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#1a1a1a] font-sans">
-
+    <div style={{ backgroundColor: C.bg, color: C.text, fontFamily: C.sans, minHeight: "100vh" }}>
       <Nav />
 
-      <main className="max-w-6xl mx-auto px-6 pt-24 pb-6 h-screen flex flex-col gap-4">
+      <main style={{ maxWidth: 1152, margin: "0 auto", padding: "5.5rem 1.5rem 1rem", height: "100vh", display: "flex", flexDirection: "column", gap: "1rem" }}>
 
         {/* ── PAGE HEADER ── */}
-        <div className="flex items-center justify-between flex-shrink-0">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-[#1a1a1a]">Net Worth Calculator</h1>
-            <p className="text-[#1a1a1a]/50 text-sm mt-0.5">Everything you own minus everything you owe — live as you type.</p>
+            <h1 style={{ fontFamily: C.serif, fontSize: "1.75rem", fontWeight: 700, color: C.text, lineHeight: 1.1 }}>Net Worth Calculator</h1>
+            <p style={{ fontSize: "0.875rem", color: C.muted, marginTop: "0.25rem" }}>Everything you own minus everything you owe — live as you type.</p>
           </div>
-          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full">
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, backgroundColor: `${C.green}18`, border: `1px solid ${C.green}30`, color: C.green, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.4rem 0.875rem", borderRadius: 9999 }}>
             🧮 Tools
           </div>
         </div>
 
-        {/* ── TOP: LIVE SUMMARY BAR ── */}
-        <div className="bg-white border border-[#1a1a1a]/8 rounded-2xl px-6 py-4 flex-shrink-0">
-          <div className="flex items-center gap-6">
-            <div className="flex gap-4 flex-shrink-0">
-              <div className="text-center">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/35 mb-0.5">Total Assets</p>
-                <p className="text-xl font-extrabold text-emerald-600">{fmt(totalAssets)}</p>
-              </div>
-              <div className="w-px bg-[#1a1a1a]/8 self-stretch" />
-              <div className="text-center">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/35 mb-0.5">Total Liabilities</p>
-                <p className="text-xl font-extrabold text-red-500">{fmt(totalLiabs)}</p>
-              </div>
-              <div className="w-px bg-[#1a1a1a]/8 self-stretch" />
-              <div className="text-center">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/35 mb-0.5">Net Worth</p>
-                <p className={`text-xl font-extrabold ${netWorth >= 0 ? "text-emerald-700" : "text-amber-600"}`}>{fmt(netWorth)}</p>
-              </div>
+        {/* ── LIVE SUMMARY BAR ── */}
+        <div style={{ backgroundColor: "#fff", border: `1px solid ${C.border}`, borderRadius: "1rem", padding: "1rem 1.5rem", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+
+            {/* Stats */}
+            <div style={{ display: "flex", gap: "1.5rem", flexShrink: 0 }}>
+              {[
+                { label: "Total Assets",      value: fmt(totalAssets), color: C.green },
+                { label: "Total Liabilities", value: fmt(totalLiabs),  color: C.red   },
+                { label: "Net Worth",         value: fmt(netWorth),    color: netWorth >= 0 ? C.green : "#B45309" },
+              ].map((s, i) => (
+                <div key={s.label} style={{ textAlign: "center", paddingRight: i < 2 ? "1.5rem" : 0, borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
+                  <p style={{ ...lbl, marginBottom: "0.2rem" }}>{s.label}</p>
+                  <p style={{ fontFamily: C.serif, fontSize: "1.3rem", fontWeight: 700, color: s.color }}>{s.value}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between text-xs font-semibold text-[#1a1a1a]/40 mb-1.5">
+            {/* Bar */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 600, color: C.muted, marginBottom: "0.4rem" }}>
                 <span>Assets {hasInput ? `${assetPct}%` : ""}</span>
                 <span>Debt {hasInput ? `${100 - assetPct}%` : ""}</span>
               </div>
-              <div className="flex h-3 rounded-full overflow-hidden bg-[#f0ede9]">
-                <div className="bg-emerald-400 transition-all duration-500 ease-out" style={{ width: `${hasInput ? assetPct : 50}%` }} />
-                <div className="bg-red-400   transition-all duration-500 ease-out" style={{ width: `${hasInput ? 100 - assetPct : 50}%` }} />
+              <div style={{ display: "flex", height: "0.625rem", borderRadius: 9999, overflow: "hidden", backgroundColor: C.card }}>
+                <div style={{ width: `${hasInput ? assetPct : 50}%`, backgroundColor: C.green, transition: "width 0.4s ease" }} />
+                <div style={{ width: `${hasInput ? 100 - assetPct : 50}%`, backgroundColor: C.red, transition: "width 0.4s ease" }} />
               </div>
             </div>
 
-            <p className={`text-xs font-medium leading-snug max-w-[180px] flex-shrink-0 ${message.color}`}>
-              {message.text}
+            {/* Message */}
+            <p style={{ fontSize: "0.8rem", fontWeight: 500, color: msg.color, maxWidth: 200, flexShrink: 0, lineHeight: 1.5 }}>
+              {msg.text}
             </p>
           </div>
         </div>
 
-        {/* ── BOTTOM: 2-COLUMN INPUTS ── */}
-        <div className="grid grid-cols-2 gap-5 flex-1 min-h-0">
+        {/* ── 2-COLUMN INPUTS ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", flex: 1, minHeight: 0 }}>
 
           {/* Assets */}
-          <div className="bg-white border border-[#1a1a1a]/8 rounded-2xl p-5 flex flex-col min-h-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-4">💰 Assets — what you own</p>
-            <div className="flex flex-col gap-4 flex-1">
+          <div style={{ backgroundColor: "#fff", border: `1px solid ${C.border}`, borderRadius: "1rem", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column" }}>
+            <p style={{ ...lbl, marginBottom: "1rem" }}>💰 Assets — what you own</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem", flex: 1 }}>
               {ASSET_FIELDS.map(f => (
                 <MoneyInput key={f.id} field={f} value={assets[f.id] ?? ""} onChange={(id, v) => setAssets(p => ({ ...p, [id]: v }))} />
               ))}
             </div>
-            <div className="border-t border-[#1a1a1a]/8 mt-4 pt-3 flex justify-between items-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40">Total Assets</span>
-              <span className="text-lg font-extrabold text-emerald-600">{fmt(totalAssets)}</span>
+            <div style={{ borderTop: `1px solid ${C.border}`, marginTop: "1rem", paddingTop: "0.875rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={lbl}>Total Assets</p>
+              <p style={{ fontFamily: C.serif, fontSize: "1.15rem", fontWeight: 700, color: C.green }}>{fmt(totalAssets)}</p>
             </div>
           </div>
 
           {/* Liabilities */}
-          <div className="bg-white border border-[#1a1a1a]/8 rounded-2xl p-5 flex flex-col min-h-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40 mb-4">💳 Liabilities — what you owe</p>
-            <div className="flex flex-col gap-4 flex-1">
+          <div style={{ backgroundColor: "#fff", border: `1px solid ${C.border}`, borderRadius: "1rem", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column" }}>
+            <p style={{ ...lbl, marginBottom: "1rem" }}>💳 Liabilities — what you owe</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem", flex: 1 }}>
               {LIABILITY_FIELDS.map(f => (
-                <MoneyInput key={f.id} field={f} value={liabilities[f.id] ?? ""} onChange={(id, v) => setLiabs(p => ({ ...p, [id]: v }))} />
+                <MoneyInput key={f.id} field={f} value={liabs[f.id] ?? ""} onChange={(id, v) => setLiabs(p => ({ ...p, [id]: v }))} />
               ))}
             </div>
-            <div className="border-t border-[#1a1a1a]/8 mt-4 pt-3 flex justify-between items-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/40">Total Liabilities</span>
-              <span className="text-lg font-extrabold text-red-500">{fmt(totalLiabs)}</span>
+            <div style={{ borderTop: `1px solid ${C.border}`, marginTop: "1rem", paddingTop: "0.875rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={lbl}>Total Liabilities</p>
+              <p style={{ fontFamily: C.serif, fontSize: "1.15rem", fontWeight: 700, color: C.red }}>{fmt(totalLiabs)}</p>
             </div>
           </div>
 
         </div>
 
         {/* ── FOOTER STRIP ── */}
-        <div className="flex items-center justify-between flex-shrink-0 pb-1">
-          <p className="text-xs text-[#1a1a1a]/35 leading-relaxed">
-            📌 Median net worth for Americans under 35 is ~<strong className="text-[#1a1a1a]/55">$13,900</strong>. Student loans making yours negative? Completely normal. Track the trend, not just the number.
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, paddingBottom: "0.5rem" }}>
+          <p style={{ fontSize: "0.78rem", color: C.muted, lineHeight: 1.5 }}>
+            📌 Median net worth for Americans under 35 is ~<strong style={{ color: C.text }}>$13,900</strong>. Student loans making yours negative? Completely normal. Track the trend, not just the number.
           </p>
-          <a href="/daily-brief" className="flex-shrink-0 ml-6 bg-[#1a1a1a] text-white font-bold px-5 py-2 rounded-full text-xs hover:bg-emerald-700 transition-colors whitespace-nowrap">
+          <a href="/daily-brief" style={{ backgroundColor: C.coral, color: "#fff", fontWeight: 600, padding: "0.55rem 1.25rem", borderRadius: 9999, textDecoration: "none", fontSize: "0.8rem", whiteSpace: "nowrap", marginLeft: "1.5rem", flexShrink: 0 }}>
             Get the Daily Brief →
           </a>
         </div>

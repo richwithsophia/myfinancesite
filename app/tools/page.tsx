@@ -2,124 +2,97 @@
 
 import Nav from "../components/Nav";
 
+const C = {
+  bg: "#FAFAF7", card: "#F2F0EB", text: "#1A1A1A",
+  muted: "#6B6760", green: "#2D6A4F", coral: "#E07A5F",
+  border: "#E5E2DC", serif: "'Playfair Display', serif", sans: "'Inter', sans-serif",
+};
+const lbl = { fontFamily: C.sans, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: C.muted };
+
 const tools = [
   {
-    href:        "/tools/net-worth",
-    emoji:       "🧮",
-    label:       "Live",
-    title:       "Net Worth Calculator",
+    href: "/tools/net-worth", emoji: "🧮", available: true, label: "Live",
+    title: "Net Worth Calculator",
     description: "Add up everything you own and everything you owe. Your net worth updates live as you type — no account needed, no data stored.",
-    cta:         "Calculate my net worth →",
-    available:   true,
+    cta: "Calculate my net worth →",
   },
   {
-    href:        "#",
-    emoji:       "📊",
-    label:       "Coming Soon",
-    title:       "Investment Growth Calculator",
+    href: "#", emoji: "📊", available: false, label: "Coming Soon",
+    title: "Investment Growth Calculator",
     description: "See how your money grows over time with compound interest. Plug in your starting amount, monthly contribution, and time horizon.",
-    cta:         "Notify me →",
-    available:   false,
+    cta: "Notify me →",
   },
   {
-    href:        "#",
-    emoji:       "🎓",
-    label:       "Coming Soon",
-    title:       "Student Loan Payoff Planner",
+    href: "#", emoji: "🎓", available: false, label: "Coming Soon",
+    title: "Student Loan Payoff Planner",
     description: "Compare payoff strategies side by side — avalanche vs. snowball — and see exactly how much interest you'll save.",
-    cta:         "Notify me →",
-    available:   false,
+    cta: "Notify me →",
   },
   {
-    href:        "#",
-    emoji:       "🏠",
-    label:       "Coming Soon",
-    title:       "Rent vs. Buy Calculator",
+    href: "#", emoji: "🏠", available: false, label: "Coming Soon",
+    title: "Rent vs. Buy Calculator",
     description: "Stop guessing. Enter your market, income, and savings to see whether buying or renting actually makes more financial sense for you.",
-    cta:         "Notify me →",
-    available:   false,
+    cta: "Notify me →",
   },
 ];
 
 export default function ToolsPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#1a1a1a] font-sans">
-
+    <div style={{ backgroundColor: C.bg, color: C.text, fontFamily: C.sans, minHeight: "100vh" }}>
       <Nav />
 
-      <main className="max-w-6xl mx-auto px-6 pt-36 pb-24">
+      <main style={{ maxWidth: 1152, margin: "0 auto", padding: "8rem 1.5rem 5rem" }}>
 
         {/* ── HEADER ── */}
-        <div className="mb-14">
-          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-6">
+        <div style={{ marginBottom: "3.5rem" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: `${C.green}18`, border: `1px solid ${C.green}30`, color: C.green, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "0.5rem 1rem", borderRadius: 9999, marginBottom: "1.25rem" }}>
             ⚡ Financial Tools
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-[#1a1a1a]">
+          <h1 style={{ fontFamily: C.serif, fontSize: "clamp(2.2rem, 4vw, 3rem)", fontWeight: 700, color: C.text, lineHeight: 1.1, marginBottom: "1rem" }}>
             Tools that do the{" "}
-            <span className="text-emerald-600">math for you.</span>
+            <span style={{ color: C.green }}>math for you.</span>
           </h1>
-          <p className="text-[#1a1a1a]/50 text-lg max-w-xl leading-relaxed">
-            Free calculators built for high earners who are too busy to mess around with spreadsheets. No sign-up. No data stored. Just answers.
+          <p style={{ fontSize: "1.05rem", lineHeight: 1.75, color: C.muted, maxWidth: 520 }}>
+            Free calculators built for high earners who are too busy to mess around with spreadsheets.
+            No sign-up. No data stored. Just answers.
           </p>
         </div>
 
         {/* ── TOOL CARDS ── */}
-        <div className="grid md:grid-cols-2 gap-5">
-          {tools.map((tool) => (
-            <a
-              key={tool.title}
-              href={tool.href}
-              className={`group bg-white border rounded-2xl p-8 flex flex-col transition-all duration-300 ${
-                tool.available
-                  ? "border-[#1a1a1a]/5 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 cursor-pointer"
-                  : "border-[#1a1a1a]/5 opacity-60 cursor-default pointer-events-none"
-              }`}
-            >
-              <div className="flex items-start justify-between mb-5">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-2xl">
-                  {tool.emoji}
-                </div>
-                <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                  tool.available
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-[#1a1a1a]/5 text-[#1a1a1a]/35"
-                }`}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1.25rem", marginBottom: "4rem" }}>
+          {tools.map(tool => (
+            <a key={tool.title} href={tool.available ? tool.href : undefined as any}
+              style={{ backgroundColor: C.card, border: `1px solid ${C.border}`, borderRadius: "1rem", padding: "2rem", textDecoration: "none", display: "flex", flexDirection: "column", opacity: tool.available ? 1 : 0.55, cursor: tool.available ? "pointer" : "default" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+                <div style={{ fontSize: "1.75rem" }}>{tool.emoji}</div>
+                <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.3rem 0.75rem", borderRadius: 9999, backgroundColor: tool.available ? `${C.green}18` : `${C.text}0d`, color: tool.available ? C.green : C.muted }}>
                   {tool.label}
                 </span>
               </div>
-
-              <h2 className={`text-xl font-extrabold mb-3 transition-colors ${
-                tool.available ? "text-[#1a1a1a] group-hover:text-emerald-700" : "text-[#1a1a1a]"
-              }`}>
+              <h2 style={{ fontFamily: C.serif, fontSize: "1.25rem", fontWeight: 600, color: C.text, marginBottom: "0.75rem" }}>
                 {tool.title}
               </h2>
-
-              <p className="text-[#1a1a1a]/50 text-sm leading-relaxed flex-1 mb-6">
+              <p style={{ fontSize: "0.9rem", lineHeight: 1.75, color: C.muted, flex: 1, marginBottom: "1.5rem" }}>
                 {tool.description}
               </p>
-
-              <div className={`text-sm font-semibold transition-colors ${
-                tool.available
-                  ? "text-emerald-600 group-hover:text-emerald-700"
-                  : "text-[#1a1a1a]/30"
-              }`}>
+              <p style={{ fontSize: "0.875rem", fontWeight: 600, color: tool.available ? C.green : C.muted }}>
                 {tool.cta}
-              </div>
+              </p>
             </a>
           ))}
         </div>
 
         {/* ── BOTTOM CTA ── */}
-        <div className="mt-16 bg-emerald-50 border border-emerald-200 rounded-2xl px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div style={{ backgroundColor: C.green, borderRadius: "1rem", padding: "2.5rem 2rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "2rem", flexWrap: "wrap" }}>
           <div>
-            <p className="text-lg font-extrabold text-[#1a1a1a] mb-1">Want the full picture?</p>
-            <p className="text-[#1a1a1a]/50 text-sm leading-relaxed max-w-md">
+            <p style={{ fontFamily: C.serif, fontSize: "1.3rem", fontWeight: 600, color: C.bg, marginBottom: "0.4rem" }}>
+              Want the full picture?
+            </p>
+            <p style={{ fontSize: "0.9rem", color: `${C.bg}99`, lineHeight: 1.65, maxWidth: 440 }}>
               The Daily Brief puts all of this in context — market moves, rate changes, and what it actually means for your money.
             </p>
           </div>
-          <a href="/daily-brief"
-            className="flex-shrink-0 bg-[#1a1a1a] text-white font-bold px-8 py-3 rounded-full text-sm hover:bg-emerald-700 transition-colors whitespace-nowrap"
-          >
+          <a href="/daily-brief" style={{ backgroundColor: C.coral, color: "#fff", fontWeight: 600, padding: "0.85rem 1.75rem", borderRadius: 9999, textDecoration: "none", whiteSpace: "nowrap", fontSize: "0.9rem" }}>
             Get the Daily Brief →
           </a>
         </div>
@@ -127,21 +100,17 @@ export default function ToolsPage() {
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className="px-6 py-10 max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[#1a1a1a]/30 text-sm border-t border-[#1a1a1a]/5">
-        <span className="font-bold text-[#1a1a1a]/60">
-          Rich <span className="text-emerald-600">with Sophia</span>
-        </span>
-        <div className="flex items-center gap-6">
-          <a href="/"            className="hover:text-[#1a1a1a] transition-colors">Home</a>
-          <a href="/daily-brief" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-          <a href="/tools"       className="hover:text-[#1a1a1a] transition-colors">Tools</a>
-          <a href="/about"       className="hover:text-[#1a1a1a] transition-colors">About</a>
+      <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2.5rem 1.5rem", fontFamily: C.sans }}>
+        <div style={{ maxWidth: 1152, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+          <span style={{ fontFamily: C.serif, fontWeight: 700, color: C.muted }}>Rich <span style={{ color: C.green }}>with Sophia</span></span>
+          <div style={{ display: "flex", gap: "1.5rem" }}>
+            {[["Home","/"],["Daily Brief","/daily-brief"],["Tools","/tools"],["About","/about"]].map(([l,h]) => (
+              <a key={l} href={h} style={{ color: C.muted, fontSize: "0.875rem", textDecoration: "none" }}>{l}</a>
+            ))}
+          </div>
+          <a href="#" style={{ color: C.muted, fontSize: "0.82rem", textDecoration: "underline" }}>Unsubscribe anytime</a>
         </div>
-        <a href="#" className="hover:text-[#1a1a1a] transition-colors underline underline-offset-2">
-          Unsubscribe anytime
-        </a>
       </footer>
-
     </div>
   );
 }
