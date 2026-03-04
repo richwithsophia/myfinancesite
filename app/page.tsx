@@ -1,33 +1,12 @@
 "use client";
 
+import Nav from "./components/Nav";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#1a1a1a] font-sans">
 
-      {/* ── NAV ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#1a1a1a]/5">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold tracking-tight text-[#1a1a1a]">
-            Rich <span className="text-emerald-600">with Sophia</span>
-          </a>
-          <div className="hidden md:flex items-center gap-8 text-sm text-[#1a1a1a]/50 font-medium">
-            <a href="/"             className="hover:text-[#1a1a1a] transition-colors">Home</a>
-            <a href="/daily-brief"  className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-            <a href="/tools"        className="hover:text-[#1a1a1a] transition-colors">Tools</a>
-            <a href="/about"        className="hover:text-[#1a1a1a] transition-colors">About</a>
-            <a href="/daily-brief"
-              className="bg-[#1a1a1a] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-emerald-700 transition-colors"
-            >
-              Get the Brief →
-            </a>
-          </div>
-          <button className="md:hidden text-[#1a1a1a]/50 hover:text-[#1a1a1a]">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </nav>
+      <Nav />
 
       {/* ── HERO ── */}
       <section className="pt-40 pb-28 px-6 max-w-6xl mx-auto">
@@ -80,9 +59,7 @@ export default function Home() {
               Translated Market News
             </h3>
             <p className="text-[#1a1a1a]/45 text-sm leading-relaxed">
-              The Fed raised rates. Cool — but what does that actually mean for
-              your mortgage, your 401(k), and your savings account? I break it
-              down in plain English, every single day.
+              The Fed raised rates. Cool — but what does that actually mean for your mortgage, your 401(k), and your savings account? I break it down in plain English, every single day.
             </p>
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               Read today's brief →
@@ -97,9 +74,7 @@ export default function Home() {
               Weekly Portfolio Check-ins
             </h3>
             <p className="text-[#1a1a1a]/45 text-sm leading-relaxed">
-              A quick gut-check on your portfolio every week — what's moving,
-              what it means, and whether you actually need to do anything.
-              Spoiler: usually you don't.
+              A quick gut-check on your portfolio every week — what's moving, what it means, and whether you actually need to do anything. Spoiler: usually you don't.
             </p>
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               See this week's check-in →
@@ -114,9 +89,7 @@ export default function Home() {
               Zero Jargon, All Signal
             </h3>
             <p className="text-[#1a1a1a]/45 text-sm leading-relaxed">
-              No "yield curve inversions" without a translation. No CNBC-speak.
-              Just the information that matters for someone earning great money
-              and trying to make it grow.
+              No "yield curve inversions" without a translation. No CNBC-speak. Just the information that matters for someone earning great money and trying to make it grow.
             </p>
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               See how it works →
@@ -134,8 +107,7 @@ export default function Home() {
             <span className="text-emerald-600">Start understanding it.</span>
           </h2>
           <p className="text-[#1a1a1a]/45 mb-8 text-base leading-relaxed">
-            Join thousands of high-earning people who get the markets decoded in
-            their inbox — every weekday morning, in under 5 minutes.
+            Join thousands of high-earning people who get the markets decoded in their inbox — every weekday morning, in under 5 minutes.
           </p>
           <a href="/daily-brief"
             className="inline-block bg-[#1a1a1a] text-white font-bold px-10 py-4 rounded-full text-base hover:bg-emerald-700 transition-colors"

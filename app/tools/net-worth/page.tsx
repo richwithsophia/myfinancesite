@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Nav from "../../components/Nav";
 
 type Field = { id: string; label: string; hint: string };
 
@@ -77,23 +78,7 @@ export default function NetWorthCalculator() {
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#1a1a1a] font-sans">
 
-      {/* ── NAV ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#1a1a1a]/5">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold tracking-tight">
-            Rich <span className="text-emerald-600">with Sophia</span>
-          </a>
-          <div className="hidden md:flex items-center gap-8 text-sm text-[#1a1a1a]/50 font-medium">
-            <a href="/"            className="hover:text-[#1a1a1a] transition-colors">Home</a>
-            <a href="/daily-brief" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-            <a href="#"            className="text-emerald-600 font-semibold">Tools</a>
-            <a href="#"            className="hover:text-[#1a1a1a] transition-colors">About</a>
-            <a href="#" className="bg-[#1a1a1a] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-emerald-700 transition-colors">
-              Subscribe →
-            </a>
-          </div>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="max-w-6xl mx-auto px-6 pt-24 pb-6 h-screen flex flex-col gap-4">
 
@@ -111,8 +96,6 @@ export default function NetWorthCalculator() {
         {/* ── TOP: LIVE SUMMARY BAR ── */}
         <div className="bg-white border border-[#1a1a1a]/8 rounded-2xl px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-6">
-
-            {/* 3 stat pills */}
             <div className="flex gap-4 flex-shrink-0">
               <div className="text-center">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#1a1a1a]/35 mb-0.5">Total Assets</p>
@@ -130,7 +113,6 @@ export default function NetWorthCalculator() {
               </div>
             </div>
 
-            {/* Bar */}
             <div className="flex-1 min-w-0">
               <div className="flex justify-between text-xs font-semibold text-[#1a1a1a]/40 mb-1.5">
                 <span>Assets {hasInput ? `${assetPct}%` : ""}</span>
@@ -142,11 +124,9 @@ export default function NetWorthCalculator() {
               </div>
             </div>
 
-            {/* Message */}
             <p className={`text-xs font-medium leading-snug max-w-[180px] flex-shrink-0 ${message.color}`}>
               {message.text}
             </p>
-
           </div>
         </div>
 
@@ -188,7 +168,7 @@ export default function NetWorthCalculator() {
           <p className="text-xs text-[#1a1a1a]/35 leading-relaxed">
             📌 Median net worth for Americans under 35 is ~<strong className="text-[#1a1a1a]/55">$13,900</strong>. Student loans making yours negative? Completely normal. Track the trend, not just the number.
           </p>
-          <a href="#" className="flex-shrink-0 ml-6 bg-[#1a1a1a] text-white font-bold px-5 py-2 rounded-full text-xs hover:bg-emerald-700 transition-colors whitespace-nowrap">
+          <a href="/daily-brief" className="flex-shrink-0 ml-6 bg-[#1a1a1a] text-white font-bold px-5 py-2 rounded-full text-xs hover:bg-emerald-700 transition-colors whitespace-nowrap">
             Get the Daily Brief →
           </a>
         </div>

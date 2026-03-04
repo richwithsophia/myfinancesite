@@ -1,5 +1,7 @@
 "use client";
 
+import Nav from "../components/Nav";
+
 const tools = [
   {
     href:        "/tools/net-worth",
@@ -43,30 +45,7 @@ export default function ToolsPage() {
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#1a1a1a] font-sans">
 
-      {/* ── NAV ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#1a1a1a]/5">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold tracking-tight text-[#1a1a1a]">
-            Rich <span className="text-emerald-600">with Sophia</span>
-          </a>
-          <div className="hidden md:flex items-center gap-8 text-sm text-[#1a1a1a]/50 font-medium">
-            <a href="/"            className="hover:text-[#1a1a1a] transition-colors">Home</a>
-            <a href="/daily-brief" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-            <a href="/tools"       className="text-emerald-600 font-semibold">Tools</a>
-            <a href="/about"       className="hover:text-[#1a1a1a] transition-colors">About</a>
-            <a href="/daily-brief"
-              className="bg-[#1a1a1a] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-emerald-700 transition-colors"
-            >
-              Get the Brief →
-            </a>
-          </div>
-          <button className="md:hidden text-[#1a1a1a]/50 hover:text-[#1a1a1a]">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="max-w-6xl mx-auto px-6 pt-36 pb-24">
 
@@ -96,7 +75,6 @@ export default function ToolsPage() {
                   : "border-[#1a1a1a]/5 opacity-60 cursor-default pointer-events-none"
               }`}
             >
-              {/* Top row */}
               <div className="flex items-start justify-between mb-5">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-2xl">
                   {tool.emoji}
