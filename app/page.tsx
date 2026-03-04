@@ -7,17 +7,15 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#1a1a1a]/5">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight text-[#1a1a1a]">
-            Rich{" "}
-            <span className="text-emerald-600">with Sophia</span>
-          </span>
+          <a href="/" className="text-xl font-bold tracking-tight text-[#1a1a1a]">
+            Rich <span className="text-emerald-600">with Sophia</span>
+          </a>
           <div className="hidden md:flex items-center gap-8 text-sm text-[#1a1a1a]/50 font-medium">
-            <a href="#" className="hover:text-[#1a1a1a] transition-colors">Home</a>
-            <a href="#" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-            <a href="#" className="hover:text-[#1a1a1a] transition-colors">Tools</a>
-            <a href="#" className="hover:text-[#1a1a1a] transition-colors">About</a>
-            <a
-              href="#"
+            <a href="/"             className="hover:text-[#1a1a1a] transition-colors">Home</a>
+            <a href="/daily-brief"  className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
+            <a href="/tools"        className="hover:text-[#1a1a1a] transition-colors">Tools</a>
+            <a href="/about"        className="hover:text-[#1a1a1a] transition-colors">About</a>
+            <a href="/daily-brief"
               className="bg-[#1a1a1a] text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-emerald-700 transition-colors"
             >
               Get the Brief →
@@ -33,7 +31,6 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section className="pt-40 pb-28 px-6 max-w-6xl mx-auto">
-        {/* Eyebrow tag */}
         <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Daily market intel for you
@@ -51,8 +48,7 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <a
-            href="#"
+          <a href="/daily-brief"
             className="bg-[#1a1a1a] text-white font-bold px-8 py-4 rounded-full text-base hover:bg-emerald-700 transition-colors"
           >
             Get the Daily Brief →
@@ -60,7 +56,6 @@ export default function Home() {
           <span className="text-[#1a1a1a]/30 text-sm">Free. No spam. Unsubscribe anytime.</span>
         </div>
 
-        {/* Social proof strip */}
         <div className="mt-16 flex flex-wrap items-center gap-6 text-[#1a1a1a]/30 text-sm border-t border-[#1a1a1a]/5 pt-10">
           <span>📍 Built for anyone anywhere</span>
           <span className="hidden sm:block">·</span>
@@ -77,8 +72,7 @@ export default function Home() {
         </p>
         <div className="grid md:grid-cols-3 gap-5">
 
-          {/* Card 1 */}
-          <div className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
+          <a href="/daily-brief" className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-6">
               <span className="text-lg">📰</span>
             </div>
@@ -93,10 +87,9 @@ export default function Home() {
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               Read today's brief →
             </div>
-          </div>
+          </a>
 
-          {/* Card 2 */}
-          <div className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
+          <a href="/tools/net-worth" className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-6">
               <span className="text-lg">📈</span>
             </div>
@@ -111,10 +104,9 @@ export default function Home() {
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               See this week's check-in →
             </div>
-          </div>
+          </a>
 
-          {/* Card 3 */}
-          <div className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
+          <a href="/tools" className="group bg-white border border-[#1a1a1a]/5 rounded-2xl p-8 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-6">
               <span className="text-lg">⚡</span>
             </div>
@@ -129,7 +121,7 @@ export default function Home() {
             <div className="mt-6 text-emerald-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
               See how it works →
             </div>
-          </div>
+          </a>
 
         </div>
       </section>
@@ -142,11 +134,10 @@ export default function Home() {
             <span className="text-emerald-600">Start understanding it.</span>
           </h2>
           <p className="text-[#1a1a1a]/45 mb-8 text-base leading-relaxed">
-            Join thousands of high-earning people  who get the markets decoded in
+            Join thousands of high-earning people who get the markets decoded in
             their inbox — every weekday morning, in under 5 minutes.
           </p>
-          <a
-            href="#"
+          <a href="/daily-brief"
             className="inline-block bg-[#1a1a1a] text-white font-bold px-10 py-4 rounded-full text-base hover:bg-emerald-700 transition-colors"
           >
             Get the Daily Brief →
@@ -160,10 +151,10 @@ export default function Home() {
           Rich <span className="text-emerald-600">with Sophia</span>
         </span>
         <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-[#1a1a1a] transition-colors">Home</a>
-          <a href="#" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
-          <a href="#" className="hover:text-[#1a1a1a] transition-colors">Tools</a>
-          <a href="#" className="hover:text-[#1a1a1a] transition-colors">About</a>
+          <a href="/"            className="hover:text-[#1a1a1a] transition-colors">Home</a>
+          <a href="/daily-brief" className="hover:text-[#1a1a1a] transition-colors">Daily Brief</a>
+          <a href="/tools"       className="hover:text-[#1a1a1a] transition-colors">Tools</a>
+          <a href="/about"       className="hover:text-[#1a1a1a] transition-colors">About</a>
         </div>
         <a href="#" className="hover:text-[#1a1a1a] transition-colors underline underline-offset-2">
           Unsubscribe anytime
