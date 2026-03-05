@@ -31,13 +31,37 @@ const LIABILITY_FIELDS: Field[] = [
   { id: "otherDebt",    label: "Other Debt",       hint: "Personal loans, medical debt, or any other liabilities." },
 ];
 
+const MAX_INPUT = 999_999_999; // $999M cap — reasonable ceiling for personal finance
+
 function fmt(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 }
+
+// Compact formatter for the summary bar — avoids overflow at large numbers
+function fmtCompact(n: number) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "-" : "";
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
+  if (abs >= 10_000)    return `${sign}$${(abs / 1_000).toFixed(0)}K`;
+  return fmt(n);
+}
+
 function parseVal(s: string) {
   const n = parseFloat(s.replace(/[^0-9.]/g, ""));
-  return isNaN(n) ? 0 : n;
+  return isNaN(n) ? 0 : Math.min(n, MAX_INPUT);
 }
+
+// Sanitize raw input: strip negatives, cap at MAX, strip decimals
+function sanitize(raw: string): string {
+  // Remove anything that isn't a digit or decimal point
+  const stripped = raw.replace(/[^0-9.]/g, "");
+  if (stripped === "" || stripped === ".") return "";
+  const n = parseFloat(stripped);
+  if (isNaN(n)) return "";
+  if (n > MAX_INPUT) return String(MAX_INPUT);
+  return stripped; // keep as-is while typing (don't round mid-entry)
+}
+
 function getMessage(nw: number, has: boolean): { text: string; color: string } {
   if (!has)         return { text: "Fill in your numbers — no judgment, just math. 💛",                                       color: C.muted };
   if (nw >= 500000) return { text: "You're building serious wealth. Keep compounding. 🚀",                                   color: C.green };
@@ -49,6 +73,20 @@ function getMessage(nw: number, has: boolean): { text: string; color: string } {
 
 function MoneyInput({ field, value, onChange }: { field: Field; value: string; onChange: (id: string, v: string) => void }) {
   const [focused, setFocused] = useState(false);
+
+  const handleChange = (raw: string) => {
+    onChange(field.id, sanitize(raw));
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    // On blur: round off any trailing decimal so "500." → "500"
+    if (value !== "") {
+      const n = parseFloat(value);
+      if (!isNaN(n)) onChange(field.id, String(Math.floor(n)));
+    }
+  };
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -57,9 +95,14 @@ function MoneyInput({ field, value, onChange }: { field: Field; value: string; o
       </div>
       <div style={{ display: "flex", alignItems: "center", border: `2px solid ${focused ? C.green : C.border}`, borderRadius: "0.625rem", padding: "0.4rem 0.75rem", width: "9.5rem", flexShrink: 0, backgroundColor: "#fff", boxShadow: focused ? `0 0 0 3px ${C.green}18` : "none", transition: "all 0.15s" }}>
         <span style={{ color: C.muted, fontSize: "0.9375rem", marginRight: "0.25rem" }}>$</span>
-        <input type="number" min="0" placeholder="0" value={value}
-          onChange={e => onChange(field.id, e.target.value)}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="0"
+          value={value}
+          onChange={e => handleChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={handleBlur}
           style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: "0.9375rem", fontWeight: 600, color: C.text, fontFamily: C.sans, width: "100%" }}
         />
       </div>
@@ -97,15 +140,15 @@ export default function NetWorthCalculator() {
         <div style={{ backgroundColor: "#fff", border: `1px solid ${C.border}`, borderRadius: "1rem", padding: "1rem 1.5rem", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             {/* Stats */}
-            <div style={{ display: "flex", gap: "1.5rem", flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: "1.5rem", flexShrink: 1, minWidth: 0 }}>
               {[
-                { label: "Total Assets",      value: fmt(totalAssets), color: C.green },
-                { label: "Total Liabilities", value: fmt(totalLiabs),  color: C.red   },
-                { label: "Net Worth",         value: fmt(netWorth),    color: netWorth >= 0 ? C.green : "#B45309" },
+                { label: "Total Assets",      value: fmtCompact(totalAssets), color: C.green },
+                { label: "Total Liabilities", value: fmtCompact(totalLiabs),  color: C.red   },
+                { label: "Net Worth",         value: fmtCompact(netWorth),    color: netWorth >= 0 ? C.green : "#B45309" },
               ].map((s, i) => (
-                <div key={s.label} style={{ textAlign: "center", paddingRight: i < 2 ? "1.5rem" : 0, borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
-                  <p style={{ ...lbl, marginBottom: "0.2rem" }}>{s.label}</p>
-                  <p style={{ fontFamily: C.serif, fontSize: "1.3rem", fontWeight: 700, color: s.color }}>{s.value}</p>
+                <div key={s.label} style={{ textAlign: "center", paddingRight: i < 2 ? "1.5rem" : 0, borderRight: i < 2 ? `1px solid ${C.border}` : "none", flexShrink: 0 }}>
+                  <p style={{ ...lbl, marginBottom: "0.2rem", whiteSpace: "nowrap" }}>{s.label}</p>
+                  <p style={{ fontFamily: C.serif, fontSize: "1.3rem", fontWeight: 700, color: s.color, whiteSpace: "nowrap" }}>{s.value}</p>
                 </div>
               ))}
             </div>
