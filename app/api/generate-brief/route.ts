@@ -260,7 +260,7 @@ function buildDraftEmailHtml({
   const editorSecret = process.env.EDITOR_SECRET ?? "";
 
   const editorUrl  = `${siteUrl}/admin/brief/${draftId}?token=${editorSecret}`;
-  const publishUrl = `${siteUrl}/api/publish-brief/${draftId}?token=${editorSecret}`;
+  const publishUrl = `${siteUrl}/api/brief/${draftId}?token=${editorSecret}&action=publish`;
 
   const subjectLineBlock = subjectLines
     ? `

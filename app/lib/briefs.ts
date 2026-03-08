@@ -217,3 +217,31 @@ export async function getAllBriefs(): Promise<Brief[]> {
     );
   }
 }
+
+/**
+ * Save edits to an existing draft without changing its status.
+ * Use this from the editor to save changes before publishing.
+ */
+export async function saveDraftEdits(
+  id: string,
+  editedData: Partial<BriefInput>
+): Promise<Brief> {
+  try {
+    const existing = await getBrief(id);
+    if (!existing) throw new Error(`Brief "${id}" not found`);
+
+    const updated: Brief = {
+      ...existing,
+      ...editedData,
+      id,           // never allow ID to be overwritten
+      status: existing.status, // preserve existing status
+    };
+
+    await redis.set(briefKey(id), JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    throw new Error(
+      `saveDraftEdits failed for id "${id}": ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
