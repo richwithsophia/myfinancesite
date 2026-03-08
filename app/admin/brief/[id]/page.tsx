@@ -41,8 +41,8 @@ export default function BriefEditorPage() {
   const [error,          setError]          = useState("");
 
   // Editable fields
-  const [executiveSummary, setExecutiveSummary] = useState("");
-  const [keyTakeaways,     setKeyTakeaways]     = useState("");
+  const [openingTakeaways, setOpeningTakeaways] = useState("");
+  const [openingContext,   setOpeningContext]   = useState("");
   const [quotableInsight,  setQuotableInsight]  = useState("");
   const [mood,             setMood]             = useState("");
   const [marketPerf,       setMarketPerf]       = useState("");
@@ -63,8 +63,8 @@ export default function BriefEditorPage() {
 
         const data: Brief = await res.json();
         setBrief(data);
-        setExecutiveSummary(data.executiveSummary);
-        setKeyTakeaways(data.keyTakeaways.join("\n"));
+        setOpeningTakeaways(JSON.stringify(data.openingSection?.takeaways ?? [], null, 2));
+        setOpeningContext(data.openingSection?.context ?? "");
         setQuotableInsight(data.quotableInsight);
         setMood(data.mood);
         setMarketPerf(JSON.stringify(data.marketPerformance, null, 2));
@@ -84,8 +84,10 @@ export default function BriefEditorPage() {
 
   function buildPayload() {
     return {
-      executiveSummary,
-      keyTakeaways: keyTakeaways.split("\n").map((s) => s.trim()).filter(Boolean),
+      openingSection: {
+        takeaways: JSON.parse(openingTakeaways),
+        context:   openingContext,
+      },
       quotableInsight,
       mood,
       marketPerformance: JSON.parse(marketPerf),
@@ -198,17 +200,16 @@ export default function BriefEditorPage() {
           <textarea rows={1} style={S.textarea} value={mood} onChange={(e) => setMood(e.target.value)} />
         </div>
 
-        {/* Executive Summary */}
+        {/* Opening Section — Takeaways */}
         <div style={S.section}>
-          <p style={S.heading}>Executive Summary</p>
-          <textarea rows={4} style={S.textarea} value={executiveSummary} onChange={(e) => setExecutiveSummary(e.target.value)} />
+          <p style={S.heading}>Today in 60 Seconds — Takeaways (JSON array)</p>
+          <textarea rows={6} style={S.mono} value={openingTakeaways} onChange={(e) => setOpeningTakeaways(e.target.value)} />
         </div>
 
-        {/* Key Takeaways */}
+        {/* Opening Section — Context */}
         <div style={S.section}>
-          <p style={S.heading}>Key Takeaways</p>
-          <label style={S.label}>One per line</label>
-          <textarea rows={4} style={S.textarea} value={keyTakeaways} onChange={(e) => setKeyTakeaways(e.target.value)} />
+          <p style={S.heading}>Today in 60 Seconds — Context</p>
+          <textarea rows={4} style={S.textarea} value={openingContext} onChange={(e) => setOpeningContext(e.target.value)} />
         </div>
 
         {/* Quotable Insight */}
