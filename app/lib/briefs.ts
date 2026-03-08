@@ -60,6 +60,9 @@ export type Brief = {
   // ── Optional seasonal section ──
   seasonalTip?: SeasonalTip;
 
+  // ── Subject lines ──
+  subjectLines?: string[] | null;
+
   // ── Metadata ──
   createdAt: string;
   publishedAt: string | null;

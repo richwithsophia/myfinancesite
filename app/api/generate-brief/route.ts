@@ -1,8 +1,8 @@
 // app/api/generate-brief/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { saveDraft } from "@/app/lib/briefs";
-import { SYSTEM_PROMPT, buildUserMessage } from "@/app/lib/briefPrompt";
+import { saveDraft, publishBrief } from "@/app/lib/briefs";
+import { SYSTEM_PROMPT, buildUserMessage, buildSubjectLinePrompt } from "@/app/lib/briefPrompt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -449,7 +449,42 @@ const isSlowNewsDay = headlines.length < 3;
       );
     }
 
-    // 8. Return success
+    // 8. Generate subject lines (non-blocking — draft already saved)
+    try {
+      const subjectLineMessage = await client.messages.create({
+        model:      "claude-sonnet-4-20250514",
+        max_tokens: 250,
+        messages: [
+          {
+            role:    "user",
+            content: buildSubjectLinePrompt(JSON.stringify(briefData)),
+          },
+        ],
+      });
+
+      const firstBlock = subjectLineMessage.content[0];
+      if (firstBlock.type === "text") {
+        const cleaned = firstBlock.text
+          .replace(/^```json\s*/i, "")
+          .replace(/^```\s*/i,    "")
+          .replace(/```\s*$/i,    "")
+          .trim();
+
+        const parsed = JSON.parse(cleaned) as { subjectLines: string[] };
+
+        if (Array.isArray(parsed.subjectLines) && parsed.subjectLines.length === 2) {
+          // Update the draft in Redis with subject lines
+          await publishBrief(draftId, { subjectLines: parsed.subjectLines });
+          console.log("Subject lines saved:", parsed.subjectLines);
+        }
+      }
+    } catch (err) {
+      // Subject line failure never blocks the brief
+      console.warn("Subject line generation failed — brief saved without it:", err);
+    }
+
+     
+    // 9. Return success
     return NextResponse.json({ success: true, draftId });
 
   } catch (err) {

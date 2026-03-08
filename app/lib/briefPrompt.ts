@@ -185,20 +185,45 @@ FIELD RULES:
 
 export function buildSubjectLinePrompt(briefJSON: string): string {
   return `
-You are writing email subject lines for "Rich with Sophia" — a daily market brief for high-earning women building wealth and working toward financial independence.
+You are writing email subject lines for "Rich with Sophia" — a daily market brief for high-earning women actively building wealth and working toward financial independence.
 
-The subject line is the single most important sentence in the entire brief. It determines whether she opens it.
+The subject line is the single most important sentence in the entire brief. It determines whether she opens it. Write like a brilliant friend texting her something she genuinely needs to know today — not like a newsletter, not like CNBC.
 
-RULES:
-- Generate exactly 2 subject line options
-- Each must be under 50 characters
-- Sound like a text from a smart friend — not a newsletter or financial publication
-- Create curiosity, urgency, or a feeling she will miss something specific if she doesn't open
+HARD RULES:
+- Maximum 50 characters per subject line — count carefully
 - Never use: "Today's Brief", "Market Update", "Daily Digest", or any generic newsletter language
-- Never use emojis in subject lines
-- Reference the actual content of the brief — not generic market language
-- Option 1 leads with the market story or headline event
-- Option 2 leads with the personal impact or wealth-building angle
+- Never use emojis
+- Never write a pure news headline with no personal connection ("Oil spikes as Iran tensions escalate" — rejected)
+- Never write a pure personal statement with no event grounding ("Your gas bill is about to hurt" — rejected)
+- Always name the specific event AND connect it directly to her money, her 401k, her mortgage, her gas bill, her debt, or her path to financial independence
+- Use specific numbers from the brief whenever possible — they dramatically increase open rates
+- Never sound alarmist or clickbaity — she is smart and will unsubscribe if she feels manipulated
+
+PSYCHOLOGICAL TRIGGERS TO CHOOSE FROM — pick the best fit for today's news, don't force a structure:
+- Curiosity gap: make her feel she's missing something specific if she doesn't open
+- Specificity: a real number (dollar amount, percentage, rate) makes it feel urgent and credible
+- Contrast or surprise: something counterintuitive about today's market move
+- Direct wallet impact: name exactly how today's news hits her specific financial life
+- FOMO: what informed women are doing right now that she should know about
+
+GENERATE EXACTLY 2 OPTIONS:
+- Option 1: leads with the market event angle using one of the triggers above
+- Option 2: leads with the personal wallet or wealth-building angle using a different trigger
+- The two options should feel meaningfully different — not just reworded versions of each other
+- Both must combine the specific event AND her personal financial impact
+
+GOOD EXAMPLES (study the pattern, do not copy):
+- "Iran oil spike: your gas budget just changed"
+- "S&P down 1.3% — your 401k in plain English"
+- "Rates dropped. Here's what that means for you"
+- "Markets panicked. Your index funds did their job"
+- "The Fed just made your mortgage math harder"
+
+BAD EXAMPLES (never do this):
+- "Oil spikes as Iran tensions escalate" — pure news headline
+- "Your gas bill is about to hurt more" — no event context
+- "Today's market brief is here" — generic
+- "Important financial update for you" — could be spam
 
 Here is today's brief:
 ${briefJSON}
@@ -207,8 +232,8 @@ Return ONLY a valid JSON object. No markdown, no backticks, no preamble.
 
 {
   "subjectLines": [
-    "Subject line option 1 — market story angle",
-    "Subject line option 2 — personal impact or wealth angle"
+    "Option 1 — market event angle, max 50 chars",
+    "Option 2 — personal wallet angle, max 50 chars"
   ]
 }
   `.trim();
