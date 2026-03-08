@@ -394,7 +394,6 @@ export async function POST(req: NextRequest) {
     try {
         const today = new Date().toISOString().split("T")[0];
         const savedBrief = await saveDraft({
-            id: today,
             date: today,
             ...briefData,
     });
