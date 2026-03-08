@@ -1,6 +1,7 @@
 // app/api/generate-brief/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { Resend } from "resend";
 import { saveDraft, publishBrief } from "@/app/lib/briefs";
 import { SYSTEM_PROMPT, buildUserMessage, buildSubjectLinePrompt } from "@/app/lib/briefPrompt";
 
@@ -11,6 +12,14 @@ interface NewsHeadline {
   source: string;
   summary: string;
   published: string;
+}
+
+interface MarketSnapshot {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePct: number;
 }
 
 interface Ticker {
@@ -236,6 +245,144 @@ function formatMarketDataForPrompt(snapshots: MarketSnapshot[]): string {
     .join("\n");
 }
 
+// ─── Build Draft Email ──────────────────────────────────────────────────────
+
+function buildDraftEmailHtml({
+  draftId,
+  brief,
+  subjectLines,
+}: {
+  draftId: string;
+  brief: BriefJSON;
+  subjectLines: string[] | null;
+}): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const editorSecret = process.env.EDITOR_SECRET ?? "";
+
+  const editorUrl  = `${siteUrl}/admin/brief/${draftId}?token=${editorSecret}`;
+  const publishUrl = `${siteUrl}/api/publish-brief/${draftId}?token=${editorSecret}`;
+
+  const subjectLineBlock = subjectLines
+    ? `
+      <div style="background:#1a1a1a;border-radius:8px;padding:16px;margin-bottom:24px;">
+        <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">Subject Line Options</p>
+        <p style="color:#ffffff;margin:0 0 8px;">1. ${subjectLines[0]}</p>
+        <p style="color:#ffffff;margin:0;">2. ${subjectLines[1]}</p>
+      </div>`
+    : "";
+
+  const marketRows = brief.marketPerformance
+    .map((m) => {
+      const color = m.direction === "up" ? "#4ade80" : "#f87171";
+      return `<tr>
+        <td style="padding:8px 12px;color:#ffffff;">${m.index}</td>
+        <td style="padding:8px 12px;color:#ffffff;">${m.value}</td>
+        <td style="padding:8px 12px;color:${color};">${m.change}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const developmentsBlock = brief.keyDevelopments
+    .map((d) => `
+      <div style="margin-bottom:16px;">
+        <p style="color:#e07a5f;font-size:12px;text-transform:uppercase;margin:0 0 4px;">${d.icon} ${d.tag}</p>
+        <p style="color:#ffffff;font-weight:600;margin:0 0 4px;">${d.headline}</p>
+        <p style="color:#9ca3af;margin:0;">${d.plain}</p>
+      </div>`)
+    .join("");
+
+  const watchBlock = brief.whatToWatch
+    .map((w) => `
+      <div style="margin-bottom:12px;">
+        <p style="color:#ffffff;font-weight:600;margin:0 0 2px;">${w.item}</p>
+        <p style="color:#9ca3af;margin:0;">${w.detail}</p>
+      </div>`)
+    .join("");
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="background:#000000;color:#ffffff;font-family:'Inter',Arial,sans-serif;margin:0;padding:24px;">
+  <div style="max-width:640px;margin:0 auto;">
+
+    <!-- Header -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#2d6a4f;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Rich with Sophia</p>
+      <h1 style="color:#ffffff;font-size:24px;margin:0 0 4px;">Daily Brief Draft</h1>
+      <p style="color:#9ca3af;font-size:14px;margin:0;">${draftId} · Mood: ${brief.mood}</p>
+    </div>
+
+    <!-- Subject Lines -->
+    ${subjectLineBlock}
+
+    <!-- Action Buttons -->
+    <div style="margin-bottom:32px;display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="${editorUrl}" style="display:inline-block;background:#2d6a4f;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">
+        Review &amp; Edit Brief →
+      </a>
+      <a href="${publishUrl}" style="display:inline-block;background:#1a1a1a;color:#e07a5f;border:2px solid #e07a5f;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">
+        Publish As-Is →
+      </a>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #1a1a1a;margin-bottom:32px;">
+
+    <!-- Executive Summary -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Executive Summary</p>
+      <p style="color:#ffffff;line-height:1.6;margin:0;">${brief.executiveSummary}</p>
+    </div>
+
+    <!-- Key Takeaways -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Key Takeaways</p>
+      ${brief.keyTakeaways.map((t) => `<p style="color:#ffffff;margin:0 0 8px;">· ${t}</p>`).join("")}
+    </div>
+
+    <!-- Quotable Insight -->
+    <div style="background:#1a1a1a;border-left:3px solid #e07a5f;padding:16px;border-radius:4px;margin-bottom:32px;">
+      <p style="color:#e07a5f;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Quotable Insight</p>
+      <p style="color:#ffffff;font-style:italic;margin:0;">"${brief.quotableInsight}"</p>
+    </div>
+
+    <!-- Market Performance -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Market Performance</p>
+      <table style="width:100%;border-collapse:collapse;background:#1a1a1a;border-radius:8px;">
+        ${marketRows}
+      </table>
+    </div>
+
+    <!-- Key Developments -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">Key Developments</p>
+      ${developmentsBlock}
+    </div>
+
+    <!-- Tactical Insight -->
+    <div style="background:#1a1a1a;border-radius:8px;padding:16px;margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Tactical Insight</p>
+      <p style="color:#ffffff;font-weight:600;margin:0 0 8px;">${brief.tacticalInsight.title}</p>
+      <p style="color:#9ca3af;margin:0;">${brief.tacticalInsight.body}</p>
+    </div>
+
+    <!-- What to Watch -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">What to Watch</p>
+      ${watchBlock}
+    </div>
+
+    <hr style="border:none;border-top:1px solid #1a1a1a;margin-bottom:24px;">
+    <p style="color:#6b7280;font-size:12px;text-align:center;margin:0;">Rich with Sophia · Internal Draft Review</p>
+
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+
 // ─── Response Validators ──────────────────────────────────────────────────────
 
 function isMarketCard(obj: unknown): obj is MarketCard {
@@ -449,6 +596,8 @@ const isSlowNewsDay = headlines.length < 3;
       );
     }
 
+    let subjectLines: string[] | null = null;
+    
     // 8. Generate subject lines (non-blocking — draft already saved)
     try {
       const subjectLineMessage = await client.messages.create({
@@ -473,9 +622,9 @@ const isSlowNewsDay = headlines.length < 3;
         const parsed = JSON.parse(cleaned) as { subjectLines: string[] };
 
         if (Array.isArray(parsed.subjectLines) && parsed.subjectLines.length === 2) {
-          // Update the draft in Redis with subject lines
-          await publishBrief(draftId, { subjectLines: parsed.subjectLines });
-          console.log("Subject lines saved:", parsed.subjectLines);
+          subjectLines = parsed.subjectLines;
+          await publishBrief(draftId, { subjectLines });
+          console.log("Subject lines saved:", subjectLines);
         }
       }
     } catch (err) {
@@ -484,8 +633,41 @@ const isSlowNewsDay = headlines.length < 3;
     }
 
      
-    // 9. Return success
-    return NextResponse.json({ success: true, draftId });
+    // 9. Send draft review email (non-blocking)
+    try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      const myEmail      = process.env.MY_EMAIL;
+      const fromEmail    = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
+
+      if (!resendApiKey || !myEmail) {
+        console.warn("RESEND_API_KEY or MY_EMAIL not set — skipping email");
+      } else {
+        const resend = new Resend(resendApiKey);
+
+        // Use first subject line if available, fallback to date string
+        const emailSubject = subjectLines?.[0] ?? `Rich with Sophia Draft — ${draftId}`;
+
+        const html = buildDraftEmailHtml({
+          draftId,
+          brief: briefData,
+          subjectLines: subjectLines ?? null,
+        });
+
+        await resend.emails.send({
+          from:    fromEmail,
+          to:      myEmail,
+          subject: emailSubject,
+          html,
+        });
+
+        console.log(`Draft review email sent to ${myEmail}`);
+      }
+    } catch (err) {
+      console.warn("Email send failed — brief saved successfully:", err);
+    }
+
+    // 10. Return success
+      return NextResponse.json({ success: true, draftId });
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
