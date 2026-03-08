@@ -176,104 +176,167 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
 
           <Divider my="0" />
 
-          {/* ── EXECUTIVE SUMMARY ── */}
-          <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
-            <p className="rws-label">🎯 Executive Summary</p>
-            <div className="rws-card-white">
-              <p
-                style={{
-                  fontFamily: C.serif,
-                  fontSize: "clamp(1.05rem, 2vw, 1.25rem)",
-                  fontWeight: 600,
-                  color: C.text,
-                  lineHeight: 1.7,
-                  margin: 0,
-                }}
-              >
-                {brief.executiveSummary}
-              </p>
-            </div>
-          </section>
-
-          {/* ── TACTICAL INSIGHT ── */}
-          <section style={{ marginBottom: "1.5rem" }}>
-            <p className="rws-label">💡 Tactical Insight</p>
-            <div
-              style={{
-                backgroundColor: `${C.coral}0f`,
-                border: `1px solid ${C.coral}35`,
-                borderRadius: "1rem",
-                padding: "1.5rem",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: C.serif,
-                  fontSize: "clamp(1rem, 2vw, 1.15rem)",
-                  fontWeight: 700,
-                  color: C.text,
-                  marginBottom: "0.6rem",
-                  marginTop: 0,
-                  lineHeight: 1.3,
-                }}
-              >
-                {brief.tacticalInsight.title}
-              </p>
-              <p
-                style={{
-                  fontSize: "0.925rem",
-                  lineHeight: 1.8,
-                  color: C.muted,
-                  margin: 0,
-                }}
-              >
-                {brief.tacticalInsight.body}
-              </p>
-            </div>
-          </section>
+          {/* ════════════════════════════════════════
+              SUMMARY SECTION — 30-second skim layer
+              ════════════════════════════════════════ */}
 
           {/* ── MARKET PERFORMANCE ── */}
-          <section style={{ marginBottom: "2rem" }}>
-            <p className="rws-label">📊 Market Performance</p>
-            <div className="rws-grid-market">
-              {brief.marketPerformance.map((item) => (
-                <div
-                  key={item.index}
-                  style={{ backgroundColor: C.card, borderRadius: "0.875rem", padding: "1rem" }}
+          {Array.isArray(brief.marketPerformance) && brief.marketPerformance.length > 0 && (
+            <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
+              <p className="rws-label">📊 Market Performance</p>
+              <div className="rws-grid-market">
+                {brief.marketPerformance.map((item) => (
+                  <div
+                    key={item.index}
+                    style={{ backgroundColor: C.card, borderRadius: "0.875rem", padding: "1rem" }}
+                  >
+                    <p style={{ ...labelStyle, fontSize: "0.62rem", marginBottom: "0.5rem" }}>
+                      {item.index}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: C.serif,
+                        fontSize: "clamp(1.1rem, 2vw, 1.4rem)",
+                        fontWeight: 700,
+                        color: item.direction === "up" ? C.red : C.green,
+                        margin: 0,
+                      }}
+                    >
+                      {item.change}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: C.muted,
+                        marginTop: "0.2rem",
+                        marginBottom: 0,
+                      }}
+                    >
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: "0.72rem", color: C.muted, marginTop: "0.6rem", marginBottom: 0 }}>
+                * Green = favorable move. Red = unfavorable move. Context matters — a falling yield can be good news.
+              </p>
+            </section>
+          )}
+
+          {/* ── KEY TAKEAWAYS ── */}
+          {Array.isArray(brief.keyTakeaways) && brief.keyTakeaways.length > 0 && (
+            <section style={{ marginBottom: "1.5rem" }}>
+              <p className="rws-label">⚡ Key Takeaways</p>
+              <div
+                style={{
+                  backgroundColor: C.card,
+                  borderRadius: "1rem",
+                  padding: "1.25rem 1.5rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.875rem",
+                }}
+              >
+                {brief.keyTakeaways.map((takeaway, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.75rem",
+                      ...(i > 0 && {
+                        borderTop: `1px solid ${C.border}`,
+                        paddingTop: "0.875rem",
+                      }),
+                    }}
+                  >
+                    <span
+                      style={{
+                        minWidth: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        backgroundColor: `${C.green}18`,
+                        color: C.green,
+                        fontSize: "0.65rem",
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        marginTop: 2,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <p
+                      style={{
+                        fontSize: "clamp(0.875rem, 1.5vw, 0.925rem)",
+                        fontWeight: 500,
+                        color: C.text,
+                        lineHeight: 1.6,
+                        margin: 0,
+                      }}
+                    >
+                      {takeaway}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── QUOTABLE INSIGHT ── */}
+          {brief.quotableInsight && (
+            <section style={{ marginBottom: "2rem" }}>
+              <div
+                style={{
+                  borderLeft: `3px solid ${C.green}`,
+                  paddingLeft: "1.25rem",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: C.serif,
+                    fontSize: "clamp(1rem, 2vw, 1.15rem)",
+                    fontWeight: 600,
+                    fontStyle: "italic",
+                    color: C.text,
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}
                 >
-                  <p style={{ ...labelStyle, fontSize: "0.62rem", marginBottom: "0.5rem" }}>
-                    {item.index}
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: C.serif,
-                      fontSize: "clamp(1.1rem, 2vw, 1.4rem)",
-                      fontWeight: 700,
-                      color: item.direction === "up" ? C.red : C.green,
-                      margin: 0,
-                    }}
-                  >
-                    {item.change}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: C.muted,
-                      marginTop: "0.2rem",
-                      marginBottom: 0,
-                    }}
-                  >
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p style={{ fontSize: "0.72rem", color: C.muted, marginTop: "0.6rem", marginBottom: 0 }}>
-              * Green = favorable move. Red = unfavorable move. Context matters — a falling yield can be good news.
-            </p>
-          </section>
+                  &ldquo;{brief.quotableInsight}&rdquo;
+                </p>
+              </div>
+            </section>
+          )}
 
           <Divider my="0" />
+
+          {/* ════════════════════════════════════════
+              DETAIL SECTION — full read layer
+              ════════════════════════════════════════ */}
+
+          {/* ── EXECUTIVE SUMMARY ── */}
+          {brief.executiveSummary && (
+            <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
+              <p className="rws-label">🎯 Executive Summary</p>
+              <div className="rws-card-white">
+                <p
+                  style={{
+                    fontFamily: C.serif,
+                    fontSize: "clamp(1.05rem, 2vw, 1.25rem)",
+                    fontWeight: 600,
+                    color: C.text,
+                    lineHeight: 1.7,
+                    margin: 0,
+                  }}
+                >
+                  {brief.executiveSummary}
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* ── EDITORIAL SPLIT ── */}
           <div className="rws-editorial" style={{ marginTop: "2rem" }}>
@@ -281,7 +344,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
             {/* LEFT — Key Developments */}
             <section>
               <p className="rws-label">🗞️ Key Developments</p>
-              {brief.keyDevelopments.map((item, i) => (
+              {(brief.keyDevelopments ?? []).map((item, i) => (
                 <div
                   key={item.headline}
                   style={
@@ -324,70 +387,151 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
             {/* RIGHT — Sidebar */}
             <aside style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
 
-              {/* What to Watch */}
-              <div className="rws-card">
-                <p className="rws-label">🔮 What to Watch</p>
-                {brief.whatToWatch.map((w, i) => (
-                  <div
-                    key={w.item}
-                    style={
-                      i > 0
-                        ? { borderTop: `1px solid ${C.border}`, paddingTop: "1.1rem", marginTop: "1.1rem" }
-                        : {}
-                    }
+              {/* Tactical Insight */}
+              {brief.tacticalInsight && (
+                <div
+                  style={{
+                    backgroundColor: `${C.coral}0f`,
+                    border: `1px solid ${C.coral}35`,
+                    borderRadius: "1rem",
+                    padding: "1.5rem",
+                  }}
+                >
+                  <p className="rws-label">💡 Tactical Insight</p>
+                  <p
+                    style={{
+                      fontFamily: C.serif,
+                      fontSize: "clamp(1rem, 2vw, 1.1rem)",
+                      fontWeight: 700,
+                      color: C.text,
+                      marginBottom: "0.6rem",
+                      marginTop: 0,
+                      lineHeight: 1.3,
+                    }}
                   >
+                    {brief.tacticalInsight.title}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      lineHeight: 1.8,
+                      color: C.muted,
+                      margin: 0,
+                    }}
+                  >
+                    {brief.tacticalInsight.body}
+                  </p>
+                </div>
+              )}
+
+              {/* What to Watch */}
+              {Array.isArray(brief.whatToWatch) && brief.whatToWatch.length > 0 && (
+                <div className="rws-card">
+                  <p className="rws-label">🔮 What to Watch</p>
+                  {brief.whatToWatch.map((w, i) => (
                     <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        alignItems: "flex-start",
-                        marginBottom: "0.35rem",
-                      }}
+                      key={w.item}
+                      style={
+                        i > 0
+                          ? { borderTop: `1px solid ${C.border}`, paddingTop: "1.1rem", marginTop: "1.1rem" }
+                          : {}
+                      }
                     >
-                      <span
+                      <div
                         style={{
-                          minWidth: 20,
-                          height: 20,
-                          borderRadius: "50%",
-                          backgroundColor: `${C.green}18`,
-                          color: C.green,
-                          fontSize: "0.62rem",
-                          fontWeight: 700,
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                          marginTop: 2,
+                          gap: 8,
+                          alignItems: "flex-start",
+                          marginBottom: "0.35rem",
                         }}
                       >
-                        {i + 1}
-                      </span>
+                        <span
+                          style={{
+                            minWidth: 20,
+                            height: 20,
+                            borderRadius: "50%",
+                            backgroundColor: `${C.green}18`,
+                            color: C.green,
+                            fontSize: "0.62rem",
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        <p
+                          style={{
+                            fontSize: "0.875rem",
+                            fontWeight: 600,
+                            color: C.text,
+                            lineHeight: 1.35,
+                            margin: 0,
+                          }}
+                        >
+                          {w.item}
+                        </p>
+                      </div>
                       <p
                         style={{
-                          fontSize: "0.875rem",
-                          fontWeight: 600,
-                          color: C.text,
-                          lineHeight: 1.35,
+                          fontSize: "0.825rem",
+                          lineHeight: 1.7,
+                          color: C.muted,
+                          paddingLeft: 28,
                           margin: 0,
                         }}
                       >
-                        {w.item}
+                        {w.detail}
                       </p>
                     </div>
-                    <p
-                      style={{
-                        fontSize: "0.825rem",
-                        lineHeight: 1.7,
-                        color: C.muted,
-                        paddingLeft: 28,
-                        margin: 0,
-                      }}
-                    >
-                      {w.detail}
+                  ))}
+                </div>
+              )}
+
+              {/* Seasonal Tip — only renders when present */}
+              {brief.seasonalTip && (
+                <div
+                  style={{
+                    backgroundColor: `${C.green}0a`,
+                    border: `1px solid ${C.green}30`,
+                    borderRadius: "1rem",
+                    padding: "1.5rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.5rem" }}>
+                    <span>📅</span>
+                    <p style={{ ...labelStyle, margin: 0, color: C.green }}>
+                      {brief.seasonalTip.tag}
                     </p>
                   </div>
-                ))}
-              </div>
+                  <p
+                    style={{
+                      fontFamily: C.serif,
+                      fontSize: "clamp(0.95rem, 2vw, 1.05rem)",
+                      fontWeight: 700,
+                      color: C.text,
+                      marginBottom: "0.5rem",
+                      marginTop: 0,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {brief.seasonalTip.headline}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      lineHeight: 1.8,
+                      color: C.muted,
+                      margin: 0,
+                    }}
+                  >
+                    {brief.seasonalTip.plain}
+                  </p>
+                </div>
+              )}
 
               {/* Net Worth CTA */}
               <div className="rws-card-white" style={{ textAlign: "center" }}>

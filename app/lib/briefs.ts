@@ -32,18 +32,36 @@ export type TacticalInsight = {
   body: string;
 };
 
+export type SeasonalTip = {
+  tag: string;
+  headline: string;
+  plain: string;
+};
+
 export type BriefStatus = "draft" | "published";
 
 export type Brief = {
   id: string;
   date: string;
   status: BriefStatus;
-  executiveSummary: string;
+
+  // ── Summary section (top / skim layer) ──
+  mood: string;
+  keyTakeaways: string[];
+  quotableInsight: string;
   marketPerformance: MarketPerformanceItem[];
+
+  // ── Detail section (full read layer) ──
+  executiveSummary: string;
   keyDevelopments: KeyDevelopment[];
-  whatToWatch: WhatToWatchItem[];
   tacticalInsight: TacticalInsight;
-  createdAt: string;      // ISO string
+  whatToWatch: WhatToWatchItem[];
+
+  // ── Optional seasonal section ──
+  seasonalTip?: SeasonalTip;
+
+  // ── Metadata ──
+  createdAt: string;
   publishedAt: string | null;
 };
 

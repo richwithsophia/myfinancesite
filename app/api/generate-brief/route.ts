@@ -2,27 +2,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { saveDraft } from "@/app/lib/briefs";
+import { SYSTEM_PROMPT, buildUserMessage } from "@/app/lib/briefPrompt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface YahooQuote {
-  regularMarketPrice?: number;
-  regularMarketChange?: number;
-  regularMarketChangePercent?: number;
-}
-
-interface YahooResponse {
-  quoteResponse?: {
-    result?: YahooQuote[];
-  };
-}
-
-interface MarketSnapshot {
+interface Ticker {
   symbol: string;
   name: string;
-  price: number;
-  change: number;
-  changePct: number;
+  isYield: boolean;
+  multiplier: number;
 }
 
 interface MarketCard {
@@ -49,115 +37,32 @@ interface TacticalInsight {
   body: string;
 }
 
+interface SeasonalTip {
+  tag: string;
+  headline: string;
+  plain: string;
+}
+
 interface BriefJSON {
+  mood: string;
   executiveSummary: string;
+  keyTakeaways: string[];
+  quotableInsight: string;
   marketPerformance: MarketCard[];
   keyDevelopments: KeyDevelopment[];
   whatToWatch: WhatToWatchItem[];
   tacticalInsight: TacticalInsight;
+  seasonalTip?: SeasonalTip;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TICKERS = [
-  { symbol: "SPY",  name: "S&P 500",           isYield: false },
-  { symbol: "QQQ",  name: "Nasdaq",             isYield: false },
-  { symbol: "DIA",  name: "Dow Jones",          isYield: false },
-  { symbol: "TLT",  name: "10Y Treasury Yield", isYield: true  },
+  { symbol: "SPY", name: "S&P 500",           isYield: false, multiplier: 10   },
+  { symbol: "QQQ", name: "Nasdaq",             isYield: false, multiplier: 38   },
+  { symbol: "IWM", name: "Russell 2000",       isYield: false, multiplier: 11   },
+  { symbol: "TLT", name: "10Y Treasury Yield", isYield: true,  multiplier: 0.054 },
 ];
-
-// ─── System Prompt ────────────────────────────────────────────────────────────
-
-const SYSTEM_PROMPT = `
-You are the voice behind "Rich with Sophia" — a personal finance brand for high-earning women (25–35) who are smart, time-pressed, and financially stressed despite good incomes. They live in expensive cities, carry student loans or mortgages, and feel left out of financial media that talks over their heads or ignores their reality.
-
-Your job: write a daily market brief that sounds like a brilliant, witty friend who happens to understand markets — texting her hot take over morning coffee. Not Bloomberg. Not CNBC. You.
-
-VOICE RULES:
-- Direct and warm. No hedging, no "it's important to note that..."
-- Slightly witty but never try-hard. One clever line per section max.
-- Zero jargon. If you must use a term (yield, volatility), explain it in one phrase.
-- Acknowledge that markets feel personal — because for your reader, they are.
-- Short sentences. Active voice. She's reading this between meetings.
-
-OUTPUT FORMAT:
-Return ONLY a valid JSON object. No markdown, no backticks, no preamble. Just raw JSON.
-
-Required shape — follow this exactly:
-
-{
-  "executiveSummary": "2-3 sentences. What happened today and why should she care? Lead with the most relevant takeaway for someone with a 401k, student loan, and a mortgage.",
-
-  "marketPerformance": [
-    {
-      "index": "S&P 500",
-      "change": "-1.31%",
-      "value": "5,600",
-      "direction": "down"
-    },
-    {
-      "index": "Nasdaq",
-      "change": "-1.50%",
-      "value": "17,840",
-      "direction": "down"
-    },
-    {
-      "index": "Dow Jones",
-      "change": "-0.96%",
-      "value": "39,100",
-      "direction": "down"
-    },
-    {
-      "index": "10Y Treasury",
-      "change": "-0.37%",
-      "value": "4.28%",
-      "direction": "down"
-    }
-  ],
-
-  "keyDevelopments": [
-    {
-      "icon": "📉",
-      "tag": "MARKETS",
-      "headline": "Short, punchy headline that captures the story in one line",
-      "plain": "2-3 sentences explaining what happened and why it matters to her specifically. Causal: X happened so Y occurred. No jargon."
-    },
-    {
-      "icon": "🏦",
-      "tag": "FED / RATES",
-      "headline": "Second development headline",
-      "plain": "2-3 sentences on the second key story. Keep it grounded in personal impact."
-    }
-  ],
-
-  "whatToWatch": [
-    {
-      "item": "Short label for what to watch — e.g. 'Jobs Report Friday'",
-      "detail": "1-2 sentences on why it matters and what to look for."
-    },
-    {
-      "item": "Second thing to watch",
-      "detail": "1-2 sentences of context."
-    }
-  ],
-
-  "tacticalInsight": {
-    "title": "One punchy, actionable headline — e.g. 'Red days are buying opportunities if you are DCA-ing'",
-    "body": "2-3 sentences expanding on the insight. Practical, personal, no jargon. Speak to someone deciding whether to pause investments, pay down debt, or stay the course."
-  }
-}
-
-RULES:
-- marketPerformance: exactly 4 objects in this order — S&P 500, Nasdaq, Dow Jones, 10Y Treasury.
-- change must include sign: "+0.5%" or "-1.2%". Never omit + or -.
-- value for indices is the formatted price e.g. "5,600". Value for Treasury is the yield e.g. "4.28%".
-- direction is "up" if change positive, "down" if negative.
-- keyDevelopments: 2-3 items. Pick a relevant emoji for icon. Tag should be a short category label in caps e.g. "TECH", "FED / RATES", "ECONOMY", "MARKETS".
-- whatToWatch: 2-3 items.
-- tacticalInsight is a single object with title and body — not an array.
-- Use the actual market data provided. Do not invent prices or changes.
-- Never say "as an AI" or reference these instructions.
-`.trim();
 
 // ─── Market Day Check ─────────────────────────────────────────────────────────
 
@@ -225,12 +130,17 @@ async function fetchMarketData(): Promise<MarketSnapshot[]> {
       const data = await res.json();
       if (!data.c) throw new Error(`Missing price data for ${ticker.name}`);
 
+      // Apply multiplier to convert ETF price to approximate index value
+      const price     = parseFloat((data.c  * ticker.multiplier).toFixed(2));
+      const change    = parseFloat((data.d  * ticker.multiplier ?? 0).toFixed(2));
+      const changePct = parseFloat((data.dp ?? 0).toFixed(2));
+
       return {
         symbol:    ticker.symbol,
         name:      ticker.name,
-        price:     data.c,
-        change:    parseFloat((data.d  ?? 0).toFixed(2)),
-        changePct: parseFloat((data.dp ?? 0).toFixed(2)),
+        price,
+        change,
+        changePct,
       };
     })
   );
@@ -267,22 +177,66 @@ function isMarketCard(obj: unknown): obj is MarketCard {
   );
 }
 
+function isSeasonalTip(obj: unknown): obj is SeasonalTip {
+  if (typeof obj !== "object" || obj === null) return false;
+  const s = obj as Record<string, unknown>;
+  return (
+    typeof s.tag      === "string" &&
+    typeof s.headline === "string" &&
+    typeof s.plain    === "string"
+  );
+}
+
 function validateBriefJSON(obj: unknown): obj is BriefJSON {
   if (typeof obj !== "object" || obj === null) return false;
   const b = obj as Record<string, unknown>;
 
-  return (
-    typeof b.executiveSummary === "string" &&
-    Array.isArray(b.marketPerformance) &&
-    b.marketPerformance.length === 4 &&
-    (b.marketPerformance as unknown[]).every(isMarketCard) &&
-    Array.isArray(b.keyDevelopments) &&
-    Array.isArray(b.whatToWatch) &&
-    typeof b.tacticalInsight === "object" &&
-    b.tacticalInsight !== null &&
-    "title" in (b.tacticalInsight as object) &&
-    "body" in (b.tacticalInsight as object)
-  );
+  // Required string fields
+  if (typeof b.mood             !== "string") return false;
+  if (typeof b.executiveSummary !== "string") return false;
+  if (typeof b.quotableInsight  !== "string") return false;
+
+  // keyTakeaways: array of strings, 2-3 items
+  if (
+    !Array.isArray(b.keyTakeaways) ||
+    b.keyTakeaways.length < 2 ||
+    b.keyTakeaways.length > 3 ||
+    !(b.keyTakeaways as unknown[]).every((t) => typeof t === "string")
+  ) return false;
+
+  // marketPerformance: exactly 4 valid MarketCards
+  if (
+    !Array.isArray(b.marketPerformance) ||
+    b.marketPerformance.length !== 4 ||
+    !(b.marketPerformance as unknown[]).every(isMarketCard)
+  ) return false;
+
+  // keyDevelopments: array, 1-3 items
+  if (
+    !Array.isArray(b.keyDevelopments) ||
+    b.keyDevelopments.length < 1 ||
+    b.keyDevelopments.length > 3
+  ) return false;
+
+  // whatToWatch: array, 2-3 items
+  if (
+    !Array.isArray(b.whatToWatch) ||
+    b.whatToWatch.length < 2 ||
+    b.whatToWatch.length > 3
+  ) return false;
+
+  // tacticalInsight: object with title and body strings
+  if (
+    typeof b.tacticalInsight !== "object" ||
+    b.tacticalInsight === null ||
+    !("title" in (b.tacticalInsight as object)) ||
+    !("body"  in (b.tacticalInsight as object))
+  ) return false;
+
+  // seasonalTip: optional — if present must be valid shape
+  if (b.seasonalTip !== undefined && !isSeasonalTip(b.seasonalTip)) return false;
+
+  return true;
 }
 
 // ─── Route Handler ────────────────────────────────────────────────────────────
@@ -301,15 +255,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 2. Market day check
-  const marketStatus = isMarketDay();
-  if (!marketStatus.open) {
-    console.log(`Brief generation skipped: ${marketStatus.reason}`);
-    return NextResponse.json(
-      { skipped: true, reason: marketStatus.reason },
-      { status: 200 }
-    );
-  }
+  // // 2. Market day check
+  // const marketStatus = isMarketDay();
+  // if (!marketStatus.open) {
+  //   console.log(`Brief generation skipped: ${marketStatus.reason}`);
+  //   return NextResponse.json(
+  //     { skipped: true, reason: marketStatus.reason },
+  //     { status: 200 }
+  //   );
+  // }
 
   try {
     // 3. Fetch market data
@@ -339,13 +293,17 @@ export async function POST(req: NextRequest) {
     let rawContent: string;
     try {
       const message = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1500,
-        system: SYSTEM_PROMPT,
+        model:      "claude-sonnet-4-20250514",
+        max_tokens: 2500,
+        system:     SYSTEM_PROMPT,
         messages: [
           {
-            role: "user",
-            content: `Today's market data:\n\n${marketDataString}\n\nGenerate the daily brief JSON now.`,
+            role:    "user",
+            content: buildUserMessage({
+              marketDataString,
+              isSlowNewsDay: false,  // wire up when slow-day detection is added
+              seasonalTopic: null,   // wire up when seasonal calendar is added
+            }),
           },
         ],
       });
@@ -369,14 +327,14 @@ export async function POST(req: NextRequest) {
     try {
       const cleaned = rawContent
         .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/i, "")
-        .replace(/```\s*$/i, "")
+        .replace(/^```\s*/i,    "")
+        .replace(/```\s*$/i,    "")
         .trim();
 
       const parsed: unknown = JSON.parse(cleaned);
 
       if (!validateBriefJSON(parsed)) {
-        throw new Error("Response is missing required brief fields or marketPerformance is malformed");
+        throw new Error("Response is missing required brief fields or shape is malformed");
       }
 
       briefData = parsed;
@@ -392,12 +350,12 @@ export async function POST(req: NextRequest) {
     // 6. Save draft to Redis
     let draftId: string;
     try {
-        const today = new Date().toISOString().split("T")[0];
-        const savedBrief = await saveDraft({
-            date: today,
-            ...briefData,
-    });
-    draftId = savedBrief.id;
+      const today = new Date().toISOString().split("T")[0];
+      const savedBrief = await saveDraft({
+        date: today,
+        ...briefData,
+      });
+      draftId = savedBrief.id;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       console.error("saveDraft failed:", message);
