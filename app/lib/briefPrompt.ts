@@ -65,6 +65,7 @@ On slow news days:
 - Replace keyDevelopments with one standalone evergreen financial education insight relevant to her wealth-building journey
 - Choose a topic from: index fund strategy, tax-advantaged accounts, net worth building, debt avalanche vs snowball, emergency fund math, salary negotiation and its compounding effect on wealth, or financial independence milestone planning
 - Keep the same JSON structure — use the keyDevelopments array with a single object tagged "FINANCIAL EDUCATION"
+- On slow news days, openingSection.context should lead with "Markets were quiet today" and pivot to the evergreen financial insight
 - Do not use more than one keyDevelopment item on a slow news day
 
 ---
@@ -113,15 +114,16 @@ Required JSON shape — follow this exactly:
     }
   ],
 
-  "keyTakeaways": [
-    "Start with the implication for her life, not the market event. Max 20 words.",
-    "Second takeaway — one concept only. Max 20 words.",
-    "Third takeaway — forward-looking or wealth-building angle if possible. Max 20 words."
-  ],
+"openingSection": {
+    "takeaways": [
+      "Impact-first, max 12 words. No jargon. Read like a text from a friend.",
+      "Second takeaway — one concept only. Max 12 words.",
+      "Third takeaway — forward-looking or wealth-building angle. Max 12 words."
+    ],
+    "context": "2-3 sentences. Connects the takeaways — never repeats them verbatim. Explains why today's news matters to her 401k, mortgage, gas bill, student loans, or path to financial independence. Adds the connective tissue the bullets leave out."
+  },
 
   "quotableInsight": "One sentence she could repeat in a meeting or text to a friend. Punchy. Memorable. No jargon. Under 20 words.",
-
-  "executiveSummary": "2-3 sentences. What happened today and why should she care? Lead with the most relevant takeaway for someone with a 401k, student loans, a mortgage, and an eye on financial independence. Connect the dots between the market and her real life.",
 
   "keyDevelopments": [
     {
@@ -140,17 +142,17 @@ Required JSON shape — follow this exactly:
 
   "tacticalInsight": {
     "title": "One punchy actionable headline — specific, not generic. Connect to her investing or wealth-building goals.",
-    "body": "2-3 sentences. Practical, personal, no jargon. Speak to someone actively working toward financial independence — deciding whether to pause investments, pay down debt, rebalance, or press forward. End with exactly this sentence: 'This is not financial advice.'"
+    "body": "2 sentences maximum. First sentence: one specific, practical action or positioning thought — no hedging, no 'consider' or 'you might want to'. Second sentence must be exactly: 'This is not financial advice.' Nothing else."
   },
 
   "whatToWatch": [
     {
-      "item": "Short label — e.g. 'Jobs Report Friday 8:30am ET'",
-      "detail": "Why it matters to her specifically and what outcome to watch for. 1-2 sentences."
+      "item": "The event in plain English — no jargon, no ticker symbols. Max 8 words.",
+      "detail": "One sentence only. Connect directly to her mortgage, gas bill, 401k, job security, or student loans. Answer: what happens to her money if this goes wrong or right?"
     },
     {
-      "item": "Second thing to watch",
-      "detail": "1-2 sentences of context and what it means for her financial life."
+      "item": "Second event — plain English, max 8 words.",
+      "detail": "One sentence. Same rule — her wallet, not the market abstractly."
     }
   ],
 
@@ -168,6 +170,9 @@ FIELD RULES:
 - change must include sign: "+0.5%" or "-1.2%". Never omit + or -
 - value for indices is formatted price e.g. "5,612". Value for Treasury is yield e.g. "4.52%"
 - direction is "up" if change is positive, "down" if negative
+- openingSection.takeaways: exactly 2-3 bullets. One concept per bullet. Max 12 words each. Start with the impact, not the event. Read like texts not headlines.
+- openingSection.context: exactly 2-3 sentences. Never repeats the takeaways verbatim. Adds connective tissue and the "why it matters to her" layer.
+- quotableInsight: exactly 1 sentence. Under 20 words. She should be able to say this out loud naturally.
 - keyTakeaways: exactly 2-3 bullets. One concept per bullet. Max 20 words each. Start with the implication, not the event
 - quotableInsight: exactly 1 sentence. Under 20 words. She should be able to say this out loud naturally
 - executiveSummary: 2-3 sentences max
@@ -198,6 +203,7 @@ HARD RULES:
 - Always name the specific event AND connect it directly to her money, her 401k, her mortgage, her gas bill, her debt, or her path to financial independence
 - Use specific numbers from the brief whenever possible — they dramatically increase open rates
 - Never sound alarmist or clickbaity — she is smart and will unsubscribe if she feels manipulated
+- Never invent or infer numbers — only use specific figures (percentages, dollar amounts, index levels) that appear explicitly in the brief JSON provided below
 
 PSYCHOLOGICAL TRIGGERS TO CHOOSE FROM — pick the best fit for today's news, don't force a structure:
 - Curiosity gap: make her feel she's missing something specific if she doesn't open

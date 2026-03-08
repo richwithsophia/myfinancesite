@@ -45,14 +45,16 @@ export type Brief = {
   date: string;
   status: BriefStatus;
 
-  // ── Summary section (top / skim layer) ──
+  // ── Opening section ──
   mood: string;
-  keyTakeaways: string[];
+  openingSection: {
+    takeaways: string[];
+    context: string;
+  };
   quotableInsight: string;
   marketPerformance: MarketPerformanceItem[];
 
   // ── Detail section (full read layer) ──
-  executiveSummary: string;
   keyDevelopments: KeyDevelopment[];
   tacticalInsight: TacticalInsight;
   whatToWatch: WhatToWatchItem[];

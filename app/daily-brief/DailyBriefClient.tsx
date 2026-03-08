@@ -6,9 +6,9 @@
 // Client component — renders the full daily brief UI.
 //
 // Responsibilities:
-//   1. Renders the complete brief: market performance, key takeaways,
-//      quotable insight, executive summary, key developments, tactical
-//      insight, what to watch, and optional seasonal tip
+//   1. Renders the complete brief in this order:
+//      Mood → Today in 60 Seconds → Quotable Insight → Market Performance
+//      → Key Developments + Sidebar → Subscribe CTA → Prev/Next Nav
 //   2. Handles empty/error state when no published brief exists
 //   3. Renders prev/next navigation so readers can browse all published briefs
 //   4. Manages current brief index in local state — no additional API calls
@@ -57,6 +57,16 @@ function formatBriefDate(dateStr: string, options: Intl.DateTimeFormatOptions): 
   } catch {
     return dateStr;
   }
+}
+
+// ─── Mood config ───────────────────────────────────────────────────────────────
+
+function getMoodColor(mood: string): string {
+  const m = mood.toLowerCase();
+  if (["nervous", "volatile", "fearful", "stressed"].includes(m)) return "#ef4444";
+  if (["cautious", "mixed", "uncertain", "uneasy"].includes(m))   return "#f59e0b";
+  if (["steady", "optimistic", "calm", "bullish"].includes(m))    return "#22c55e";
+  return "#6b7280";
 }
 
 // ─── Empty / error state ───────────────────────────────────────────────────────
@@ -124,14 +134,15 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const activeBrief = allBriefs.length > 0 ? allBriefs[currentIndex] : brief;
-  const hasPrev     = currentIndex < allBriefs.length - 1; // older
-  const hasNext     = currentIndex > 0;                    // newer
+  const hasPrev     = currentIndex < allBriefs.length - 1;
+  const hasNext     = currentIndex > 0;
 
   if (!activeBrief || fetchError) {
     return <EmptyState fetchError={fetchError} />;
   }
 
-  const brief2 = activeBrief;
+  const brief2    = activeBrief;
+  const moodColor = getMoodColor(brief2.mood ?? "");
 
   return (
     <PageWrapper>
@@ -141,7 +152,7 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
           {/* ── HEADER ── */}
           <div
             className="rws-flex-stack"
-            style={{ justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem" }}
+            style={{ justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}
           >
             <div>
               <SectionLabel pulse>Market Intel</SectionLabel>
@@ -211,15 +222,157 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
             </div>
           </div>
 
+          {/* ── MOOD INDICATOR ── */}
+          {brief2.mood && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  backgroundColor: `${moodColor}15`,
+                  border: `1px solid ${moodColor}40`,
+                  borderRadius: "9999px",
+                  padding: "0.35rem 0.875rem",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  color: moodColor,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    backgroundColor: moodColor,
+                    display: "inline-block",
+                    flexShrink: 0,
+                  }}
+                />
+                {brief2.mood}
+              </span>
+            </div>
+          )}
+
           <Divider my="0" />
 
           {/* ════════════════════════════════════════
-              SUMMARY SECTION — 30-second skim layer
+              TODAY IN 60 SECONDS
               ════════════════════════════════════════ */}
 
-          {/* ── MARKET PERFORMANCE ── */}
-          {Array.isArray(brief2.marketPerformance) && brief2.marketPerformance.length > 0 && (
+          {(brief2.openingSection || (brief2 as any).keyTakeaways) && (
             <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
+              <p className="rws-label">⚡ Today in 60 Seconds</p>
+              <div
+                style={{
+                  backgroundColor: C.card,
+                  borderRadius: "1rem",
+                  padding: "1.25rem 1.5rem",
+                }}
+              >
+                {/* Takeaways */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.875rem",
+                    marginBottom: "1.25rem",
+                  }}
+                >
+                  {(brief2.openingSection?.takeaways ?? (brief2 as any).keyTakeaways ?? []).map((takeaway: string, i: number) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.75rem",
+                        ...(i > 0 && {
+                          borderTop: `1px solid ${C.border}`,
+                          paddingTop: "0.875rem",
+                        }),
+                      }}
+                    >
+                      <span
+                        style={{
+                          minWidth: 22,
+                          height: 22,
+                          borderRadius: "50%",
+                          backgroundColor: `${C.green}18`,
+                          color: C.green,
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      >
+                        {i + 1}
+                      </span>
+                      <p
+                        style={{
+                          fontSize: "clamp(0.875rem, 1.5vw, 0.925rem)",
+                          fontWeight: 500,
+                          color: C.text,
+                          lineHeight: 1.6,
+                          margin: 0,
+                        }}
+                      >
+                        {takeaway}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Context paragraph */}
+                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: "1.25rem" }}>
+                  <p
+                    style={{
+                      fontSize: "clamp(0.875rem, 1.5vw, 0.925rem)",
+                      lineHeight: 1.8,
+                      color: C.muted,
+                      margin: 0,
+                    }}
+                  >
+                    {brief2.openingSection?.context ?? (brief2 as any).executiveSummary ?? ""}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* ── QUOTABLE INSIGHT ── */}
+          {brief2.quotableInsight && (
+            <section style={{ marginBottom: "1rem" }}>
+              <div style={{ borderLeft: `3px solid ${C.green}`, paddingLeft: "1.25rem" }}>
+                <p
+                  style={{
+                    fontFamily: C.serif,
+                    fontSize: "clamp(1rem, 2vw, 1.15rem)",
+                    fontWeight: 600,
+                    fontStyle: "italic",
+                    color: C.text,
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}
+                >
+                  &ldquo;{brief2.quotableInsight}&rdquo;
+                </p>
+              </div>
+            </section>
+          )}
+
+          <Divider my="0.5rem" />
+
+          {/* ════════════════════════════════════════
+              MARKET PERFORMANCE
+              ════════════════════════════════════════ */}
+
+          {Array.isArray(brief2.marketPerformance) && brief2.marketPerformance.length > 0 && (
+            <section style={{ marginTop: "2rem", marginBottom: "2rem" }}>
               <p className="rws-label">📊 Market Performance</p>
               <div className="rws-grid-market">
                 {brief2.marketPerformance.map((item) => (
@@ -235,7 +388,7 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                         fontFamily: C.serif,
                         fontSize: "clamp(1.1rem, 2vw, 1.4rem)",
                         fontWeight: 700,
-                        color: item.direction === "up" ? C.red : C.green,
+                        color: item.direction === "up" ? "#22c55e" : "#ef4444",
                         margin: 0,
                       }}
                     >
@@ -255,127 +408,17 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                 ))}
               </div>
               <p style={{ fontSize: "0.72rem", color: C.muted, marginTop: "0.6rem", marginBottom: 0 }}>
-                * Green = favorable move. Red = unfavorable move. Context matters — a falling yield can be good news.
+                * Green = up. Red = down. Context matters — a falling Treasury yield can be good news for your mortgage rate.
               </p>
-            </section>
-          )}
-
-          {/* ── KEY TAKEAWAYS ── */}
-          {Array.isArray(brief2.keyTakeaways) && brief2.keyTakeaways.length > 0 && (
-            <section style={{ marginBottom: "1.5rem" }}>
-              <p className="rws-label">⚡ Key Takeaways</p>
-              <div
-                style={{
-                  backgroundColor: C.card,
-                  borderRadius: "1rem",
-                  padding: "1.25rem 1.5rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.875rem",
-                }}
-              >
-                {brief2.keyTakeaways.map((takeaway, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "0.75rem",
-                      ...(i > 0 && {
-                        borderTop: `1px solid ${C.border}`,
-                        paddingTop: "0.875rem",
-                      }),
-                    }}
-                  >
-                    <span
-                      style={{
-                        minWidth: 22,
-                        height: 22,
-                        borderRadius: "50%",
-                        backgroundColor: `${C.green}18`,
-                        color: C.green,
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 2,
-                      }}
-                    >
-                      {i + 1}
-                    </span>
-                    <p
-                      style={{
-                        fontSize: "clamp(0.875rem, 1.5vw, 0.925rem)",
-                        fontWeight: 500,
-                        color: C.text,
-                        lineHeight: 1.6,
-                        margin: 0,
-                      }}
-                    >
-                      {takeaway}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── QUOTABLE INSIGHT ── */}
-          {brief2.quotableInsight && (
-            <section style={{ marginBottom: "2rem" }}>
-              <div
-                style={{
-                  borderLeft: `3px solid ${C.green}`,
-                  paddingLeft: "1.25rem",
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: C.serif,
-                    fontSize: "clamp(1rem, 2vw, 1.15rem)",
-                    fontWeight: 600,
-                    fontStyle: "italic",
-                    color: C.text,
-                    lineHeight: 1.5,
-                    margin: 0,
-                  }}
-                >
-                  &ldquo;{brief2.quotableInsight}&rdquo;
-                </p>
-              </div>
             </section>
           )}
 
           <Divider my="0" />
 
           {/* ════════════════════════════════════════
-              DETAIL SECTION — full read layer
+              EDITORIAL SPLIT
               ════════════════════════════════════════ */}
 
-          {/* ── EXECUTIVE SUMMARY ── */}
-          {brief2.executiveSummary && (
-            <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
-              <p className="rws-label">🎯 Executive Summary</p>
-              <div className="rws-card-white">
-                <p
-                  style={{
-                    fontFamily: C.serif,
-                    fontSize: "clamp(1.05rem, 2vw, 1.25rem)",
-                    fontWeight: 600,
-                    color: C.text,
-                    lineHeight: 1.7,
-                    margin: 0,
-                  }}
-                >
-                  {brief2.executiveSummary}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* ── EDITORIAL SPLIT ── */}
           <div className="rws-editorial" style={{ marginTop: "2rem" }}>
 
             {/* LEFT — Key Developments */}
@@ -600,7 +643,7 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                   className="rws-btn-secondary"
                   style={{ display: "inline-flex" }}
                 >
-                  Try the calculator →
+                  Calculate my net worth →
                 </a>
               </div>
 
@@ -645,7 +688,6 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                 borderTop: `1px solid ${C.border}`,
               }}
             >
-              {/* Older — higher index in newest-first array */}
               {hasPrev ? (
                 <button
                   onClick={() => setCurrentIndex((i) => i + 1)}
@@ -670,7 +712,6 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                 {currentIndex + 1} of {allBriefs.length}
               </p>
 
-              {/* Newer — lower index in newest-first array */}
               {hasNext ? (
                 <button
                   onClick={() => setCurrentIndex((i) => i - 1)}
@@ -685,7 +726,7 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: 
                     cursor: "pointer",
                   }}
                 >
-                {formatBriefDate(allBriefs[currentIndex - 1].date, { month: "short", day: "numeric" })} →  
+                  {formatBriefDate(allBriefs[currentIndex - 1].date, { month: "short", day: "numeric" })} →
                 </button>
               ) : (
                 <div style={{ width: 80 }} />

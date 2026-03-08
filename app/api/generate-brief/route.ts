@@ -61,8 +61,10 @@ interface SeasonalTip {
 
 interface BriefJSON {
   mood: string;
-  executiveSummary: string;
-  keyTakeaways: string[];
+  openingSection: {
+    takeaways: string[];
+    context: string;
+  };
   quotableInsight: string;
   marketPerformance: MarketCard[];
   keyDevelopments: KeyDevelopment[];
@@ -328,16 +330,11 @@ function buildDraftEmailHtml({
 
     <hr style="border:none;border-top:1px solid #1a1a1a;margin-bottom:32px;">
 
-    <!-- Executive Summary -->
+    <!-- Today in 60 Seconds -->
     <div style="margin-bottom:32px;">
-      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Executive Summary</p>
-      <p style="color:#ffffff;line-height:1.6;margin:0;">${brief.executiveSummary}</p>
-    </div>
-
-    <!-- Key Takeaways -->
-    <div style="margin-bottom:32px;">
-      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Key Takeaways</p>
-      ${brief.keyTakeaways.map((t) => `<p style="color:#ffffff;margin:0 0 8px;">· ${t}</p>`).join("")}
+      <p style="color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">Today in 60 Seconds</p>
+      ${brief.openingSection.takeaways.map((t) => `<p style="color:#ffffff;margin:0 0 8px;">· ${t}</p>`).join("")}
+      <p style="color:#9ca3af;line-height:1.6;margin:12px 0 0;padding-top:12px;border-top:1px solid #2a2a2a;">${brief.openingSection.context}</p>
     </div>
 
     <!-- Quotable Insight -->
@@ -411,17 +408,19 @@ function validateBriefJSON(obj: unknown): obj is BriefJSON {
   const b = obj as Record<string, unknown>;
 
   // Required string fields
-  if (typeof b.mood             !== "string") return false;
-  if (typeof b.executiveSummary !== "string") return false;
-  if (typeof b.quotableInsight  !== "string") return false;
+  if (typeof b.mood            !== "string") return false;
+  if (typeof b.quotableInsight !== "string") return false;
 
-  // keyTakeaways: array of strings, 2-3 items
+  // openingSection: object with takeaways array and context string
+  if (typeof b.openingSection !== "object" || b.openingSection === null) return false;
+  const os = b.openingSection as Record<string, unknown>;
   if (
-    !Array.isArray(b.keyTakeaways) ||
-    b.keyTakeaways.length < 2 ||
-    b.keyTakeaways.length > 3 ||
-    !(b.keyTakeaways as unknown[]).every((t) => typeof t === "string")
+    !Array.isArray(os.takeaways) ||
+    os.takeaways.length < 2 ||
+    os.takeaways.length > 3 ||
+    !(os.takeaways as unknown[]).every((t) => typeof t === "string")
   ) return false;
+  if (typeof os.context !== "string") return false;
 
   // marketPerformance: exactly 4 valid MarketCards
   if (
