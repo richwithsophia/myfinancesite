@@ -301,15 +301,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-//   // 2. Market day check
-//   const marketStatus = isMarketDay();
-//   if (!marketStatus.open) {
-//     console.log(`Brief generation skipped: ${marketStatus.reason}`);
-//     return NextResponse.json(
-//       { skipped: true, reason: marketStatus.reason },
-//       { status: 200 }
-//     );
-//   }
+  // 2. Market day check
+  const marketStatus = isMarketDay();
+  if (!marketStatus.open) {
+    console.log(`Brief generation skipped: ${marketStatus.reason}`);
+    return NextResponse.json(
+      { skipped: true, reason: marketStatus.reason },
+      { status: 200 }
+    );
+  }
 
   try {
     // 3. Fetch market data
@@ -392,12 +392,13 @@ export async function POST(req: NextRequest) {
     // 6. Save draft to Redis
     let draftId: string;
     try {
-      const today = new Date().toISOString().split("T")[0];
-      draftId = await saveDraft({
-        id: today,
-        date: today,
-        ...briefData,
-      });
+        const today = new Date().toISOString().split("T")[0];
+        const savedBrief = await saveDraft({
+            id: today,
+            date: today,
+            ...briefData,
+    });
+    draftId = savedBrief.id;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       console.error("saveDraft failed:", message);
