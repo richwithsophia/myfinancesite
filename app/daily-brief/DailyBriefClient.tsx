@@ -1,5 +1,23 @@
 "use client";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// app/daily-brief/DailyBriefClient.tsx
+//
+// Client component — renders the full daily brief UI.
+//
+// Responsibilities:
+//   1. Renders the complete brief: market performance, key takeaways,
+//      quotable insight, executive summary, key developments, tactical
+//      insight, what to watch, and optional seasonal tip
+//   2. Handles empty/error state when no published brief exists
+//   3. Renders prev/next navigation so readers can browse all published briefs
+//   4. Manages current brief index in local state — no additional API calls
+//
+// Navigation: allBriefs is sorted newest-first. "Newer" moves toward index 0,
+// "Older" moves toward the end of the array.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { SectionLabel, Divider, SubscribeForm } from "../components/ui";
 import { C, labelStyle } from "@/app/lib/brand";
@@ -9,6 +27,7 @@ import { type Brief } from "@/app/lib/briefs";
 
 type Props = {
   brief: Brief | null;
+  allBriefs?: Brief[];
   fetchError?: boolean;
 };
 
@@ -30,9 +49,19 @@ function formatPublishedAt(iso: string | null): string {
   }
 }
 
+function formatBriefDate(dateStr: string, options: Intl.DateTimeFormatOptions): string {
+  try {
+    const d = new Date(dateStr + "T12:00:00");
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", options);
+  } catch {
+    return dateStr;
+  }
+}
+
 // ─── Empty / error state ───────────────────────────────────────────────────────
 
-function EmptyState({ fetchError }: { fetchError?: boolean }) {
+function EmptyState({ fetchError }: { fetchError?: boolean; allBriefs?: Brief[] }) {
   return (
     <PageWrapper>
       <main>
@@ -91,10 +120,18 @@ function EmptyState({ fetchError }: { fetchError?: boolean }) {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function DailyBriefClient({ brief, fetchError }: Props) {
-  if (!brief || fetchError) {
+export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: Props) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const activeBrief = allBriefs.length > 0 ? allBriefs[currentIndex] : brief;
+  const hasPrev     = currentIndex < allBriefs.length - 1; // older
+  const hasNext     = currentIndex > 0;                    // newer
+
+  if (!activeBrief || fetchError) {
     return <EmptyState fetchError={fetchError} />;
   }
+
+  const brief2 = activeBrief;
 
   return (
     <PageWrapper>
@@ -144,9 +181,9 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                   margin: 0,
                 }}
               >
-                {brief.date}
+                {formatBriefDate(brief2.date, { month: "long", day: "numeric", year: "numeric" })}
               </p>
-              {brief.publishedAt && (
+              {brief2.publishedAt && (
                 <p
                   style={{
                     fontSize: "0.6rem",
@@ -156,7 +193,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  Published {formatPublishedAt(brief.publishedAt)}
+                  Published {formatPublishedAt(brief2.publishedAt)}
                 </p>
               )}
               <p
@@ -169,7 +206,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                   margin: "0.15rem 0 0",
                 }}
               >
-                Latest
+                {currentIndex === 0 ? "Latest" : "Archive"}
               </p>
             </div>
           </div>
@@ -181,11 +218,11 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
               ════════════════════════════════════════ */}
 
           {/* ── MARKET PERFORMANCE ── */}
-          {Array.isArray(brief.marketPerformance) && brief.marketPerformance.length > 0 && (
+          {Array.isArray(brief2.marketPerformance) && brief2.marketPerformance.length > 0 && (
             <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
               <p className="rws-label">📊 Market Performance</p>
               <div className="rws-grid-market">
-                {brief.marketPerformance.map((item) => (
+                {brief2.marketPerformance.map((item) => (
                   <div
                     key={item.index}
                     style={{ backgroundColor: C.card, borderRadius: "0.875rem", padding: "1rem" }}
@@ -224,7 +261,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
           )}
 
           {/* ── KEY TAKEAWAYS ── */}
-          {Array.isArray(brief.keyTakeaways) && brief.keyTakeaways.length > 0 && (
+          {Array.isArray(brief2.keyTakeaways) && brief2.keyTakeaways.length > 0 && (
             <section style={{ marginBottom: "1.5rem" }}>
               <p className="rws-label">⚡ Key Takeaways</p>
               <div
@@ -237,7 +274,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                   gap: "0.875rem",
                 }}
               >
-                {brief.keyTakeaways.map((takeaway, i) => (
+                {brief2.keyTakeaways.map((takeaway, i) => (
                   <div
                     key={i}
                     style={{
@@ -286,7 +323,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
           )}
 
           {/* ── QUOTABLE INSIGHT ── */}
-          {brief.quotableInsight && (
+          {brief2.quotableInsight && (
             <section style={{ marginBottom: "2rem" }}>
               <div
                 style={{
@@ -305,7 +342,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                     margin: 0,
                   }}
                 >
-                  &ldquo;{brief.quotableInsight}&rdquo;
+                  &ldquo;{brief2.quotableInsight}&rdquo;
                 </p>
               </div>
             </section>
@@ -318,7 +355,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
               ════════════════════════════════════════ */}
 
           {/* ── EXECUTIVE SUMMARY ── */}
-          {brief.executiveSummary && (
+          {brief2.executiveSummary && (
             <section style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
               <p className="rws-label">🎯 Executive Summary</p>
               <div className="rws-card-white">
@@ -332,7 +369,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                     margin: 0,
                   }}
                 >
-                  {brief.executiveSummary}
+                  {brief2.executiveSummary}
                 </p>
               </div>
             </section>
@@ -344,7 +381,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
             {/* LEFT — Key Developments */}
             <section>
               <p className="rws-label">🗞️ Key Developments</p>
-              {(brief.keyDevelopments ?? []).map((item, i) => (
+              {(brief2.keyDevelopments ?? []).map((item, i) => (
                 <div
                   key={item.headline}
                   style={
@@ -388,7 +425,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
             <aside style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
 
               {/* Tactical Insight */}
-              {brief.tacticalInsight && (
+              {brief2.tacticalInsight && (
                 <div
                   style={{
                     backgroundColor: `${C.coral}0f`,
@@ -409,7 +446,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                       lineHeight: 1.3,
                     }}
                   >
-                    {brief.tacticalInsight.title}
+                    {brief2.tacticalInsight.title}
                   </p>
                   <p
                     style={{
@@ -419,16 +456,16 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                       margin: 0,
                     }}
                   >
-                    {brief.tacticalInsight.body}
+                    {brief2.tacticalInsight.body}
                   </p>
                 </div>
               )}
 
               {/* What to Watch */}
-              {Array.isArray(brief.whatToWatch) && brief.whatToWatch.length > 0 && (
+              {Array.isArray(brief2.whatToWatch) && brief2.whatToWatch.length > 0 && (
                 <div className="rws-card">
                   <p className="rws-label">🔮 What to Watch</p>
-                  {brief.whatToWatch.map((w, i) => (
+                  {brief2.whatToWatch.map((w, i) => (
                     <div
                       key={w.item}
                       style={
@@ -492,7 +529,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
               )}
 
               {/* Seasonal Tip — only renders when present */}
-              {brief.seasonalTip && (
+              {brief2.seasonalTip && (
                 <div
                   style={{
                     backgroundColor: `${C.green}0a`,
@@ -504,7 +541,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.5rem" }}>
                     <span>📅</span>
                     <p style={{ ...labelStyle, margin: 0, color: C.green }}>
-                      {brief.seasonalTip.tag}
+                      {brief2.seasonalTip.tag}
                     </p>
                   </div>
                   <p
@@ -518,7 +555,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                       lineHeight: 1.3,
                     }}
                   >
-                    {brief.seasonalTip.headline}
+                    {brief2.seasonalTip.headline}
                   </p>
                   <p
                     style={{
@@ -528,7 +565,7 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
                       margin: 0,
                     }}
                   >
-                    {brief.seasonalTip.plain}
+                    {brief2.seasonalTip.plain}
                   </p>
                 </div>
               )}
@@ -595,6 +632,66 @@ export default function DailyBriefClient({ brief, fetchError }: Props) {
             </div>
             <SubscribeForm compact />
           </div>
+
+          {/* ── PREV / NEXT NAVIGATION ── */}
+          {allBriefs.length > 1 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: "2.5rem",
+                paddingTop: "1.5rem",
+                borderTop: `1px solid ${C.border}`,
+              }}
+            >
+              {/* Older — higher index in newest-first array */}
+              {hasPrev ? (
+                <button
+                  onClick={() => setCurrentIndex((i) => i + 1)}
+                  style={{
+                    background: "none",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: "0.5rem",
+                    padding: "0.5rem 1rem",
+                    fontSize: "0.825rem",
+                    fontWeight: 500,
+                    color: C.muted,
+                    cursor: "pointer",
+                  }}
+                >
+                  ← {formatBriefDate(allBriefs[currentIndex + 1].date, { month: "short", day: "numeric" })}
+                </button>
+              ) : (
+                <div style={{ width: 80 }} />
+              )}
+
+              <p style={{ fontSize: "0.75rem", color: C.muted, margin: 0 }}>
+                {currentIndex + 1} of {allBriefs.length}
+              </p>
+
+              {/* Newer — lower index in newest-first array */}
+              {hasNext ? (
+                <button
+                  onClick={() => setCurrentIndex((i) => i - 1)}
+                  style={{
+                    background: "none",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: "0.5rem",
+                    padding: "0.5rem 1rem",
+                    fontSize: "0.825rem",
+                    fontWeight: 500,
+                    color: C.muted,
+                    cursor: "pointer",
+                  }}
+                >
+                {formatBriefDate(allBriefs[currentIndex - 1].date, { month: "short", day: "numeric" })} →  
+                </button>
+              ) : (
+                <div style={{ width: 80 }} />
+              )}
+            </div>
+          )}
 
         </div>
       </main>
