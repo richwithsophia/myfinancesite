@@ -6,6 +6,13 @@ import { SYSTEM_PROMPT, buildUserMessage } from "@/app/lib/briefPrompt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface NewsHeadline {
+  headline: string;
+  source: string;
+  summary: string;
+  published: string;
+}
+
 interface Ticker {
   symbol: string;
   name: string;
@@ -148,6 +155,71 @@ async function fetchMarketData(): Promise<MarketSnapshot[]> {
   return results;
 }
 
+// ─── News Headline Fetcher ──────────────────────────────────────────────────────
+async function fetchNewsHeadlines(): Promise<NewsHeadline[]> {
+  const apiKey = process.env.MARKETAUX_API_KEY;
+  if (!apiKey) {
+    console.warn("MARKETAUX_API_KEY not set — skipping headline fetch");
+    return [];
+  }
+
+  const queries = [
+    { q: "federal reserve interest rates inflation unemployment", countries: "us" },
+    { q: "global markets economy trade",                         countries: ""   },
+    { q: "S&P 500 earnings economy GDP",                         countries: "us" },
+  ];
+
+  const seenUrls = new Set<string>();
+  const headlines: NewsHeadline[] = [];
+
+  await Promise.allSettled(
+    queries.map(async ({ q, countries }) => {
+      try {
+        const params = new URLSearchParams({
+          q,
+          filter_entities: "true",
+          language:        "en",
+          sort:            "published_at",
+          api_token:       apiKey,
+          ...(countries ? { countries } : {}),
+        });
+
+        const res = await fetch(
+          `https://api.marketaux.com/v1/news/all?${params.toString()}`,
+          { next: { revalidate: 0 } }
+        );
+
+        if (!res.ok) {
+          console.warn(`Marketaux request failed: ${res.status}`);
+          return;
+        }
+
+        const data = await res.json();
+        if (!Array.isArray(data.data)) return;
+
+        for (const article of data.data) {
+          if (seenUrls.has(article.url)) continue;
+          seenUrls.add(article.url);
+
+          headlines.push({
+            headline:  article.title        ?? "",
+            source:    article.source        ?? "Unknown",
+            summary:   article.description  ?? "",
+            published: article.published_at ?? "",
+          });
+        }
+      } catch (err) {
+        console.warn("Marketaux query failed:", err);
+      }
+    })
+  );
+
+  // Sort by published date, newest first, return top 8
+  return headlines
+    .sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime())
+    .slice(0, 8);
+}
+
 // ─── Market Data → Prompt String ─────────────────────────────────────────────
 
 function formatMarketDataForPrompt(snapshots: MarketSnapshot[]): string {
@@ -281,7 +353,18 @@ export async function POST(req: NextRequest) {
 
     const marketDataString = formatMarketDataForPrompt(snapshots);
 
-    // 4. Call Anthropic API
+// 4. Fetch news headlines (non-blocking — falls back gracefully)
+let headlines: NewsHeadline[] = [];
+try {
+  headlines = await fetchNewsHeadlines();
+  console.log(`Fetched ${headlines.length} unique headlines from Marketaux`);
+} catch (err) {
+  console.warn("Headline fetch failed entirely — proceeding without headlines:", err);
+}
+
+const isSlowNewsDay = headlines.length < 3;
+
+    // 5. Call Anthropic API
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
     if (!anthropicApiKey) {
       console.error("ANTHROPIC_API_KEY env var is not set");
@@ -301,8 +384,9 @@ export async function POST(req: NextRequest) {
             role:    "user",
             content: buildUserMessage({
               marketDataString,
-              isSlowNewsDay: false,  // wire up when slow-day detection is added
+              isSlowNewsDay,
               seasonalTopic: null,   // wire up when seasonal calendar is added
+              headlines,
             }),
           },
         ],
@@ -322,7 +406,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Parse + validate JSON
+    // 6. Parse + validate JSON
     let briefData: BriefJSON;
     try {
       const cleaned = rawContent
@@ -347,7 +431,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Save draft to Redis
+    // 7. Save draft to Redis
     let draftId: string;
     try {
       const today = new Date().toISOString().split("T")[0];
@@ -365,7 +449,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Return success
+    // 8. Return success
     return NextResponse.json({ success: true, draftId });
 
   } catch (err) {

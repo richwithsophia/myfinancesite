@@ -223,15 +223,40 @@ export function buildUserMessage({
   marketDataString,
   isSlowNewsDay = false,
   seasonalTopic = null,
+  headlines = [],
 }: {
   marketDataString: string;
   isSlowNewsDay?: boolean;
   seasonalTopic?: string | null;
+  headlines?: Array<{
+    headline: string;
+    source: string;
+    summary: string;
+    published: string;
+  }>;
 }): string {
+  const headlineBlock =
+    headlines.length > 0
+      ? [
+          "Today's news headlines:",
+          "",
+          ...headlines.map((h, i) =>
+            [
+              `${i + 1}. ${h.headline}`,
+              `   Source: ${h.source}`,
+              `   Published: ${h.published}`,
+              `   Summary: ${h.summary}`,
+            ].join("\n")
+          ),
+        ].join("\n")
+      : "No headlines available today.";
+
   const lines: string[] = [
     "Today's market data:",
     "",
     marketDataString,
+    "",
+    headlineBlock,
     "",
     `SLOW_NEWS_DAY: ${isSlowNewsDay}`,
     `SEASONAL_TOPIC: ${seasonalTopic ? `"${seasonalTopic}"` : "null"}`,
