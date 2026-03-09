@@ -469,9 +469,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const editorSecret = process.env.EDITOR_SECRET;
+const isAuthorized =
+  authHeader === `Bearer ${cronSecret}` ||
+  (editorSecret && authHeader === `Bearer ${editorSecret}`);
+
+if (!isAuthorized) {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
 
   // 2. Market day check
   const marketStatus = isMarketDay();

@@ -154,24 +154,34 @@ function Dashboard({ token }: { token: string }) {
   }
 
   async function handleGenerate() {
-    setGenerating(true); setGenMsg(""); setError("");
-    try {
-      const res = await fetch(`/api/generate-brief`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Generation failed");
-      setGenMsg("Brief generated! Refresh to see it.");
-      setTimeout(async () => {
-        await refreshBriefs();
-        setGenMsg("");
-      }, 3000);
-    } catch {
-      setError("Generation failed — check that markets are open or try again");
-    } finally {
-      setGenerating(false);
+  setGenerating(true); setGenMsg(""); setError("");
+  try {
+    // Check if a brief already exists for today
+    const today = new Date().toISOString().split("T")[0];
+    const check = await fetch(`/api/brief/${today}?token=${token}`);
+    if (check.ok) {
+      const existing = await check.json();
+      if (existing && !confirm(`A brief for ${formatDate(today)} already exists. Regenerating will overwrite it. Continue?`)) {
+        return;
+      }
     }
+
+    const res = await fetch(`/api/generate-brief`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Generation failed");
+    setGenMsg("Brief generated! Refresh to see it.");
+    setTimeout(async () => {
+      await refreshBriefs();
+      setGenMsg("");
+    }, 3000);
+  } catch {
+    setError("Generation failed — check that markets are open or try again");
+  } finally {
+    setGenerating(false);
   }
+}
 
   const drafts    = briefs.filter((b) => b.status === "draft");
   const published = briefs.filter((b) => b.status === "published");
