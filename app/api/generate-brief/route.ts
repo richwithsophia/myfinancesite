@@ -149,8 +149,8 @@ async function fetchMarketData(): Promise<MarketSnapshot[]> {
       if (!data.c) throw new Error(`Missing price data for ${ticker.name}`);
 
       // Apply multiplier to convert ETF price to approximate index value
-      const price     = parseFloat((data.c  * ticker.multiplier).toFixed(2));
-      const change    = parseFloat((data.d  * ticker.multiplier ?? 0).toFixed(2));
+      const price = parseFloat((data.c  * ticker.multiplier).toFixed(2));
+      const change = parseFloat(((data.d ?? 0) * ticker.multiplier).toFixed(2));
       const changePct = parseFloat((data.dp ?? 0).toFixed(2));
 
       return {
