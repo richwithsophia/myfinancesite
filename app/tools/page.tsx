@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import PageWrapper from "../components/PageWrapper";
 import { SectionLabel, PageCard, CtaBand } from "../components/ui";
 import { C } from "../lib/brand";
@@ -37,6 +36,22 @@ const tools = [
     cta: "Notify me →",
   },
 ];
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Financial Tools",
+  description: "Free financial tools built for high-earning women — net worth calculator and more.",
+  openGraph: {
+    title: "Financial Tools | Rich with Sophia",
+    description: "Free financial tools built for high-earning women — net worth calculator and more.",
+    url: "https://myfinancesite.vercel.app/tools",
+  },
+  twitter: {
+    title: "Financial Tools | Rich with Sophia",
+    description: "Free financial tools built for high-earning women.",
+  },
+};
 
 export default function ToolsPage() {
   return (

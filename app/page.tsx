@@ -1,5 +1,4 @@
-"use client";
-
+import type { Metadata } from "next";
 import PageWrapper from "./components/PageWrapper";
 import { SectionLabel, CtaBand, PageCard, SubscribeForm } from "./components/ui";
 import { C } from "./lib/brand";
