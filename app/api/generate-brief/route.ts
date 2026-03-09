@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
-import { saveDraft, publishBrief } from "@/app/lib/briefs";
+import { saveDraft, publishBrief, saveDraftEdits } from "@/app/lib/briefs";
 import { SYSTEM_PROMPT, buildUserMessage, buildSubjectLinePrompt } from "@/app/lib/briefPrompt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ async function fetchMarketData(): Promise<MarketSnapshot[]> {
 
       // Apply multiplier to convert ETF price to approximate index value
       const price     = parseFloat((data.c  * ticker.multiplier).toFixed(2));
-      const change    = parseFloat(((data.d ?? 0) * ticker.multiplier).toFixed(2));
+      const change    = parseFloat((data.d  * ticker.multiplier ?? 0).toFixed(2));
       const changePct = parseFloat((data.dp ?? 0).toFixed(2));
 
       return {
@@ -622,7 +622,7 @@ const isSlowNewsDay = headlines.length < 3;
 
         if (Array.isArray(parsed.subjectLines) && parsed.subjectLines.length === 2) {
           subjectLines = parsed.subjectLines;
-          await publishBrief(draftId, { subjectLines });
+          await saveDraftEdits(draftId, { subjectLines });
           console.log("Subject lines saved:", subjectLines);
         }
       }
