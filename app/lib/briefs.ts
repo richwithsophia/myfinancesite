@@ -220,6 +220,17 @@ export async function getAllBriefs(): Promise<Brief[]> {
   }
 }
 
+/** getAllBriefsAdmin — returns ALL briefs regardless of status (draft + published)
+ * Used exclusively by the admin dashboard. Unlike getAllBriefs() which filters
+ * to published-only, this returns everything in Redis sorted newest-first.
+ */
+export async function getAllBriefsAdmin(): Promise<Brief[]> {
+  const ids = await redis.zrange("briefs:all", 0, -1);
+  if (!ids || ids.length === 0) return [];
+  const briefs = await Promise.all(ids.map((id) => getBrief(id as string)));
+  return (briefs.filter(Boolean) as Brief[]).reverse();
+}
+
 /**
  * Save edits to an existing draft without changing its status.
  * Use this from the editor to save changes before publishing.
