@@ -37,8 +37,6 @@ const tools = [
   },
 ];
 
-import type { Metadata } from "next";
-
 export const metadata: Metadata = {
   title: "Financial Tools",
   description: "Free financial tools built for high-earning women — net worth calculator and more.",
