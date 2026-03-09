@@ -20,7 +20,8 @@ const S = {
     display: "block", width: "100%", textAlign: "left" as const,
   }),
   btnGreen:  { background: "#2d6a4f", color: "#ffffff", border: "none", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
-  btnCoral:  { background: "#1a1a1a", color: "#e07a5f", border: "2px solid #e07a5f", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
+  btnCoral:  { background: "#2a2a2a", color: "#ffffff", border: "1px solid #3a3a3a", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
+  btnGhost:  { background: "none", color: "#6b7280", border: "none", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 500, cursor: "pointer" },
   error:     { color: "#f87171", fontSize: 14, marginTop: 8 },
 };
 
@@ -253,6 +254,9 @@ export default function BriefEditorPage() {
           <button style={S.btnCoral} onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save Draft"}
           </button>
+          <a href="/admin" style={{ ...S.btnGhost, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            ← Back to Dashboard
+          </a>
           {saveMsg && <span style={{ color: "#4ade80", fontSize: 14, alignSelf: "center" }}>{saveMsg}</span>}
         </div>
 
