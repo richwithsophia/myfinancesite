@@ -4,14 +4,16 @@ async function seed() {
   const { saveDraft, publishBrief } = await import("../app/lib/briefs");
 
   const draft = await saveDraft({
-    date: "Friday, March 6, 2025",
+    date: "2026-03-07",
     mood: "steady",
-    executiveSummary: "Test brief. Markets are doing market things.",
-    keyTakeaways: [
-      "Your 401k held steady today — no dramatic moves to worry about.",
-      "Rates are unchanged, so your mortgage math stays the same.",
-      "Watch Friday's jobs report — it could move markets more than today did.",
-    ],
+    openingSection: {
+      takeaways: [
+        "Your 401k held steady today — no dramatic moves to worry about.",
+        "Rates are unchanged, so your mortgage math stays the same.",
+        "Markets are quiet — a good day to check your financial plan.",
+      ],
+      context: "Markets did market things today. Nothing dramatic moved, which is itself useful information — steady days are a good reminder to check your own financial baseline rather than react to noise.",
+    },
     quotableInsight: "A boring market day is a good market day for long-term investors.",
     marketPerformance: [
       { index: "S&P 500",      value: "5,600",  change: "+0.5%",  direction: "up"   },
