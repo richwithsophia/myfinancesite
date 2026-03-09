@@ -14,10 +14,10 @@
 // API calls needed.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { Metadata } from "next";
 import { getAllBriefs, type Brief } from "@/app/lib/briefs";
 import DailyBriefClient from "./DailyBriefClient";
 
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Daily Brief",
