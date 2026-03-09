@@ -29,6 +29,7 @@ type Props = {
   brief: Brief | null;
   allBriefs?: Brief[];
   fetchError?: boolean;
+  initialIndex?: number;
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -130,8 +131,8 @@ function EmptyState({ fetchError }: { fetchError?: boolean; allBriefs?: Brief[] 
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function DailyBriefClient({ brief, allBriefs = [], fetchError }: Props) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function DailyBriefClient({ brief, allBriefs = [], fetchError, initialIndex = 0 }: Props) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const activeBrief = allBriefs.length > 0 ? allBriefs[currentIndex] : brief;
   const hasPrev     = currentIndex < allBriefs.length - 1;

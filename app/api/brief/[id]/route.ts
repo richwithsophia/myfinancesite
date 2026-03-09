@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBrief, saveDraftEdits, publishBrief } from "@/app/lib/briefs";
+import { getBrief, saveDraftEdits, publishBrief, revertToDraft, deleteBrief } from "@/app/lib/briefs";
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ function isAuthorized(req: NextRequest): boolean {
   return token === editorSecret;
 }
 
-// ─── GET — fetch brief OR publish (action=publish) ────────────────────────────
+// ─── GET — fetch brief, publish, or unpublish ─────────────────────────────────
 
 export async function GET(
   req: NextRequest,
@@ -20,7 +20,7 @@ export async function GET(
 
   if (!isAuthorized(req)) {
     const action = req.nextUrl.searchParams.get("action");
-    if (action === "publish") {
+    if (action === "publish" || action === "unpublish") {
       return new NextResponse(errorPage("Unauthorized — invalid token"), {
         status: 401,
         headers: { "Content-Type": "text/html" },
@@ -48,6 +48,17 @@ export async function GET(
       status: 200,
       headers: { "Content-Type": "text/html" },
     });
+  }
+
+  // ── Unpublish — revert to draft ──
+  if (action === "unpublish") {
+    try {
+      await revertToDraft(id);
+      return NextResponse.json({ success: true });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   // ── Fetch brief ──
@@ -83,6 +94,27 @@ export async function PATCH(
   try {
     const updated = await saveDraftEdits(id, editedData);
     return NextResponse.json({ success: true, id: updated.id });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// ─── DELETE — permanently delete a brief ─────────────────────────────────────
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    await deleteBrief(id);
+    return NextResponse.json({ success: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -258,3 +258,46 @@ export async function saveDraftEdits(
     );
   }
 }
+
+/**
+ * Revert a published brief back to draft status.
+ * Removes from published index, clears publishedAt.
+ */
+export async function revertToDraft(id: string): Promise<Brief> {
+  try {
+    const existing = await getBrief(id);
+    if (!existing) throw new Error(`Brief "${id}" not found`);
+
+    const updated: Brief = {
+      ...existing,
+      id,
+      status: "draft",
+      publishedAt: null,
+    };
+
+    await redis.set(briefKey(id), JSON.stringify(updated));
+    await redis.zrem(PUBLISHED_INDEX, id);
+
+    return updated;
+  } catch (error) {
+    throw new Error(
+      `revertToDraft failed for id "${id}": ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+/**
+ * Permanently delete a brief.
+ * Removes from Redis and both indexes.
+ */
+export async function deleteBrief(id: string): Promise<void> {
+  try {
+    await redis.del(briefKey(id));
+    await redis.zrem(ALL_INDEX, id);
+    await redis.zrem(PUBLISHED_INDEX, id);
+  } catch (error) {
+    throw new Error(
+      `deleteBrief failed for id "${id}": ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
