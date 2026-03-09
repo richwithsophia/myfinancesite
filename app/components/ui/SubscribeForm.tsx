@@ -1,13 +1,10 @@
 /**
  * ui/SubscribeForm.tsx
- * Email capture for the Daily Brief.
- * Drop on any page. Ready to wire to Mailchimp / ConvertKit / Resend.
+ * Email capture for the Daily Brief — wired to Beehiiv via /api/subscribe.
  *
  * Usage:
  *   <SubscribeForm />              — stacked layout (sidebar, footer)
  *   <SubscribeForm compact />      — inline row (hero, CTA band)
- *
- * To connect to an email provider: replace the TODO in handleSubmit.
  */
 "use client";
 
@@ -16,21 +13,44 @@ import { useState } from "react";
 type SubscribeFormProps = { compact?: boolean };
 
 export function SubscribeForm({ compact = false }: SubscribeFormProps) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [email,  setEmail]  = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("Please enter a valid email.");
 
-  const handleSubmit = async () => {
-    if (!email || !email.includes("@")) { setStatus("error"); return; }
-    // TODO: POST to /api/subscribe with { email }
-    // await fetch("/api/subscribe", { method: "POST", body: JSON.stringify({ email }) });
-    setStatus("success");
-    setEmail("");
-  };
+  async function handleSubmit() {
+    if (!email || !email.includes("@")) {
+      setErrorMsg("Please enter a valid email.");
+      setStatus("error");
+      return;
+    }
+
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        setErrorMsg("Something went wrong — please try again.");
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      setEmail("");
+    } catch {
+      setErrorMsg("Could not connect — please try again.");
+      setStatus("error");
+    }
+  }
 
   if (status === "success") {
     return (
       <p style={{ fontSize: "0.9rem", color: "#2D6A4F", fontWeight: 600, margin: 0 }}>
-        ✓ You're in! Check your inbox for a confirmation.
+        ✓ You&apos;re in! Welcome to Rich with Sophia.
       </p>
     );
   }
@@ -42,17 +62,22 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
           type="email"
           placeholder="your@email.com"
           value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && handleSubmit()}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           className="rws-email-input"
           style={{ flex: 1, minWidth: "12rem", borderColor: status === "error" ? "#E07A5F" : undefined }}
+          disabled={status === "loading"}
         />
-        <button onClick={handleSubmit} className="rws-btn-primary">
-          Subscribe →
+        <button
+          onClick={handleSubmit}
+          className="rws-btn-primary"
+          disabled={status === "loading"}
+        >
+          {status === "loading" ? "Subscribing..." : "Subscribe →"}
         </button>
         {status === "error" && (
           <p style={{ width: "100%", fontSize: "0.8rem", color: "#E07A5F", margin: "0.25rem 0 0" }}>
-            Please enter a valid email.
+            {errorMsg}
           </p>
         )}
       </div>
@@ -65,16 +90,22 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
         type="email"
         placeholder="your@email.com"
         value={email}
-        onChange={e => setEmail(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && handleSubmit()}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         className="rws-email-input"
         style={{ borderColor: status === "error" ? "#E07A5F" : undefined }}
+        disabled={status === "loading"}
       />
-      <button onClick={handleSubmit} className="rws-btn-primary" style={{ width: "100%", fontSize: "0.95rem" }}>
-        Get the Daily Brief →
+      <button
+        onClick={handleSubmit}
+        className="rws-btn-primary"
+        style={{ width: "100%", fontSize: "0.95rem" }}
+        disabled={status === "loading"}
+      >
+        {status === "loading" ? "Subscribing..." : "Get the Daily Brief →"}
       </button>
       {status === "error" && (
-        <p style={{ fontSize: "0.8rem", color: "#E07A5F", margin: 0 }}>Please enter a valid email.</p>
+        <p style={{ fontSize: "0.8rem", color: "#E07A5F", margin: 0 }}>{errorMsg}</p>
       )}
       <p style={{ fontSize: "0.8rem", color: "#6B6760", margin: 0 }}>Free. No spam. Unsubscribe anytime.</p>
     </div>
