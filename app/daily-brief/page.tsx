@@ -17,6 +17,22 @@
 import { getAllBriefs, type Brief } from "@/app/lib/briefs";
 import DailyBriefClient from "./DailyBriefClient";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Daily Brief",
+  description: "Your weekday market brief — what moved, why it matters, and what to do about it. Under 5 minutes.",
+  openGraph: {
+    title: "Daily Brief | Rich with Sophia",
+    description: "Your weekday market brief — what moved, why it matters, and what to do about it. Under 5 minutes.",
+    url: "https://myfinancesite.vercel.app/daily-brief",
+  },
+  twitter: {
+    title: "Daily Brief | Rich with Sophia",
+    description: "Your weekday market brief — what moved, why it matters, and what to do about it.",
+  },
+};
+
 export default async function DailyBriefPage() {
   let publishedBriefs: Brief[] = [];
   let fetchError = false;

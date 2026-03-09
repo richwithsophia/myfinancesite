@@ -15,8 +15,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Rich with Sophia",
-  description: "Markets explained for your real life.",
+  title: {
+    default: "Rich with Sophia — Markets explained for your real life.",
+    template: "%s | Rich with Sophia",
+  },
+  description: "Personal finance and market news explained simply for high-earning women. Get your daily brief, calculate your net worth, and actually understand what's happening in the markets.",
+  keywords: ["personal finance for women", "market news explained simply", "investing for women", "daily market brief", "net worth calculator"],
+  openGraph: {
+    siteName: "Rich with Sophia",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    site: "@richwithsophia",
+  },
 };
 
 export const viewport: Viewport = {

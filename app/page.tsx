@@ -25,6 +25,22 @@ const featureCards = [
   },
 ];
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Rich with Sophia — Markets explained for your real life.",
+  description: "Personal finance and market news explained simply for high-earning women. Get your daily brief, calculate your net worth, and actually understand what's happening in the markets.",
+  openGraph: {
+    title: "Rich with Sophia — Markets explained for your real life.",
+    description: "Personal finance and market news explained simply for high-earning women.",
+    url: "https://myfinancesite.vercel.app",
+  },
+  twitter: {
+    title: "Rich with Sophia — Markets explained for your real life.",
+    description: "Personal finance and market news explained simply for high-earning women.",
+  },
+};
+
 export default function HomePage() {
   return (
     <PageWrapper>
