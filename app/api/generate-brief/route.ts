@@ -150,7 +150,7 @@ async function fetchMarketData(): Promise<MarketSnapshot[]> {
 
       // Apply multiplier to convert ETF price to approximate index value
       const price     = parseFloat((data.c  * ticker.multiplier).toFixed(2));
-      const change    = parseFloat((data.d  * ticker.multiplier ?? 0).toFixed(2));
+      const change    = parseFloat(((data.d ?? 0) * ticker.multiplier).toFixed(2));
       const changePct = parseFloat((data.dp ?? 0).toFixed(2));
 
       return {
@@ -473,15 +473,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // // 2. Market day check
-  // const marketStatus = isMarketDay();
-  // if (!marketStatus.open) {
-  //   console.log(`Brief generation skipped: ${marketStatus.reason}`);
-  //   return NextResponse.json(
-  //     { skipped: true, reason: marketStatus.reason },
-  //     { status: 200 }
-  //   );
-  // }
+  // 2. Market day check
+  const marketStatus = isMarketDay();
+  if (!marketStatus.open) {
+    console.log(`Brief generation skipped: ${marketStatus.reason}`);
+    return NextResponse.json(
+      { skipped: true, reason: marketStatus.reason },
+      { status: 200 }
+    );
+  }
 
   try {
     // 3. Fetch market data
