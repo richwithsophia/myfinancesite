@@ -123,6 +123,15 @@ export async function DELETE(
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function publishConfirmPage(id: string, siteUrl: string): string {
   return `
 <!DOCTYPE html>

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
-import { saveDraft, publishBrief, saveDraftEdits } from "@/app/lib/briefs";
+import { saveDraft, saveDraftEdits, KeyDevelopment, WhatToWatchItem, TacticalInsight, SeasonalTip, MarketPerformanceItem } from "@/app/lib/briefs";
 import { SYSTEM_PROMPT, buildUserMessage, buildSubjectLinePrompt } from "@/app/lib/briefPrompt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,36 +29,6 @@ interface Ticker {
   multiplier: number;
 }
 
-interface MarketCard {
-  index: string;
-  change: string;
-  value: string;
-  direction: "up" | "down";
-}
-
-interface KeyDevelopment {
-  icon: string;
-  tag: string;
-  headline: string;
-  plain: string;
-}
-
-interface WhatToWatchItem {
-  item: string;
-  detail: string;
-}
-
-interface TacticalInsight {
-  title: string;
-  body: string;
-}
-
-interface SeasonalTip {
-  tag: string;
-  headline: string;
-  plain: string;
-}
-
 interface BriefJSON {
   mood: string;
   openingSection: {
@@ -66,7 +36,7 @@ interface BriefJSON {
     context: string;
   };
   quotableInsight: string;
-  marketPerformance: MarketCard[];
+  marketPerformance: MarketPerformanceItem[];
   keyDevelopments: KeyDevelopment[];
   whatToWatch: WhatToWatchItem[];
   tacticalInsight: TacticalInsight;
@@ -76,9 +46,9 @@ interface BriefJSON {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TICKERS = [
-  { symbol: "SPY", name: "S&P 500",           isYield: false, multiplier: 10   },
-  { symbol: "QQQ", name: "Nasdaq",             isYield: false, multiplier: 38   },
-  { symbol: "IWM", name: "Russell 2000",       isYield: false, multiplier: 11   },
+  { symbol: "SPY", name: "S&P 500",           isYield: false, multiplier: 10    },
+  { symbol: "QQQ", name: "Nasdaq",             isYield: false, multiplier: 38    },
+  { symbol: "DIA", name: "Dow Jones",          isYield: false, multiplier: 100   },
   { symbol: "TLT", name: "10Y Treasury Yield", isYield: true,  multiplier: 0.054 },
 ];
 
@@ -382,7 +352,7 @@ function buildDraftEmailHtml({
 
 // ─── Response Validators ──────────────────────────────────────────────────────
 
-function isMarketCard(obj: unknown): obj is MarketCard {
+function isMarketCard(obj: unknown): obj is MarketPerformanceItem {
   if (typeof obj !== "object" || obj === null) return false;
   const m = obj as Record<string, unknown>;
   return (
@@ -506,14 +476,18 @@ if (!isAuthorized) {
 
 // 4. Fetch news headlines (non-blocking — falls back gracefully)
 let headlines: NewsHeadline[] = [];
+let headlineFetchFailed = false;
 try {
   headlines = await fetchNewsHeadlines();
   console.log(`Fetched ${headlines.length} unique headlines from Marketaux`);
 } catch (err) {
+  headlineFetchFailed = true;
   console.warn("Headline fetch failed entirely — proceeding without headlines:", err);
 }
 
-const isSlowNewsDay = headlines.length < 3;
+// Only flag as slow news day if the fetch succeeded but returned few headlines.
+// A fetch failure is an API/network issue — not a signal about market activity.
+const isSlowNewsDay = !headlineFetchFailed && headlines.length < 3;
 
     // 5. Call Anthropic API
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
@@ -585,9 +559,8 @@ const isSlowNewsDay = headlines.length < 3;
     // 7. Save draft to Redis
     let draftId: string;
     try {
-      const today = new Date().toISOString().split("T")[0];
       const savedBrief = await saveDraft({
-        date: today,
+        date: new Date().toISOString().split("T")[0],
         ...briefData,
       });
       draftId = savedBrief.id;

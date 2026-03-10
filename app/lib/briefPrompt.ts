@@ -101,9 +101,9 @@ Required JSON shape — follow this exactly:
       "direction": "down"
     },
     {
-      "index": "Russell 2000",
-      "value": "2,180",
-      "change": "-1.1%",
+      "index": "Dow Jones",
+      "value": "41,938",
+      "change": "-0.9%",
       "direction": "down"
     },
     {
@@ -173,9 +173,6 @@ FIELD RULES:
 - openingSection.takeaways: exactly 2-3 bullets. One concept per bullet. Max 12 words each. Start with the impact, not the event. Read like texts not headlines.
 - openingSection.context: exactly 2-3 sentences. Never repeats the takeaways verbatim. Adds connective tissue and the "why it matters to her" layer.
 - quotableInsight: exactly 1 sentence. Under 20 words. She should be able to say this out loud naturally.
-- keyTakeaways: exactly 2-3 bullets. One concept per bullet. Max 20 words each. Start with the implication, not the event
-- quotableInsight: exactly 1 sentence. Under 20 words. She should be able to say this out loud naturally
-- executiveSummary: 2-3 sentences max
 - keyDevelopments: 2-3 items on normal days. 1 item on slow news days. Use a relevant emoji for icon. Tag in caps e.g. "TECH", "FED / RATES", "ECONOMY", "MARKETS", "HOUSING", "FINANCIAL EDUCATION"
 - tacticalInsight: single object, not an array. Must end with exactly: "This is not financial advice."
 - whatToWatch: 2-3 items

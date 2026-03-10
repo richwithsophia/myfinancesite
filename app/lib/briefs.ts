@@ -127,11 +127,10 @@ export async function saveDraft(briefData: BriefInput): Promise<Brief> {
  */
 export async function getBrief(id: string): Promise<Brief | null> {
   try {
-    const raw = await redis.get<string>(briefKey(id));
-    if (!raw) return null;
+    const raw = await redis.get<Brief>(briefKey(id));
+if (!raw) return null;
 
-    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-    return parsed as Brief;
+return raw;
   } catch (error) {
     throw new Error(
       `getBrief failed for id "${id}": ${error instanceof Error ? error.message : String(error)}`
@@ -225,10 +224,16 @@ export async function getAllBriefs(): Promise<Brief[]> {
  * to published-only, this returns everything in Redis sorted newest-first.
  */
 export async function getAllBriefsAdmin(): Promise<Brief[]> {
-  const ids = await redis.zrange("briefs:all", 0, -1);
-  if (!ids || ids.length === 0) return [];
-  const briefs = await Promise.all(ids.map((id) => getBrief(id as string)));
-  return (briefs.filter(Boolean) as Brief[]).reverse();
+  try {
+    const ids = await redis.zrange(ALL_INDEX, 0, -1, { rev: true });
+    if (!ids || ids.length === 0) return [];
+    const briefs = await Promise.all(ids.map((id) => getBrief(id as string)));
+    return briefs.filter((b): b is Brief => b !== null);
+  } catch (error) {
+    throw new Error(
+      `getAllBriefsAdmin failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 /**

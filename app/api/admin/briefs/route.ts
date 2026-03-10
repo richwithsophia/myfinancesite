@@ -6,10 +6,10 @@
 // Auth: validated against EDITOR_SECRET env var.
 // This endpoint is never called from the public-facing site.
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAllBriefsAdmin } from "@/app/lib/briefs";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token") ?? "";
 
@@ -20,7 +20,9 @@ export async function GET(req: Request) {
   try {
     const briefs = await getAllBriefsAdmin();
     return NextResponse.json(briefs);
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("getAllBriefsAdmin failed:", message);
     return NextResponse.json({ error: "Failed to fetch briefs" }, { status: 500 });
   }
 }
