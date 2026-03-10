@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import type { Brief } from "@/app/lib/briefs";
+import { C } from "@/app/lib/brand";
 
 const S = {
-  page:      { background: "#000000", minHeight: "100vh", padding: "32px 24px", fontFamily: "Arial, sans-serif" },
+  page:      { background: "#000000", minHeight: "100vh", padding: "32px 24px", fontFamily: C.sans },
   container: { maxWidth: 760, margin: "0 auto" },
   label:     { color: "#9ca3af", fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 6, display: "block" },
-  input:     { width: "100%", background: "#1a1a1a", color: "#ffffff", border: "1px solid #2a2a2a", borderRadius: 8, padding: "12px", fontSize: 14, boxSizing: "border-box" as const, fontFamily: "Arial, sans-serif" },
-  btnGreen:  { background: "#2d6a4f", color: "#ffffff", border: "none", borderRadius: 8, padding: "12px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  btnCoral:  { background: "#1a1a1a", color: "#e07a5f", border: "2px solid #e07a5f", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" },
+  input:     { width: "100%", background: "#1a1a1a", color: "#ffffff", border: "1px solid #2a2a2a", borderRadius: 8, padding: "12px", fontSize: 14, boxSizing: "border-box" as const, fontFamily: C.sans },
+  btnGreen:  { background: C.green, color: "#ffffff", border: "none", borderRadius: 8, padding: "12px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
+  btnCoral:  { background: "#1a1a1a", color: C.coral, border: `2px solid ${C.coral}`, borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" },
   btnGhost:  { background: "#1a1a1a", color: "#9ca3af", border: "1px solid #2a2a2a", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
   btnRed:    { background: "#1a1a1a", color: "#f87171", border: "1px solid #3a1a1a", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
   error:     { color: "#f87171", fontSize: 13, marginTop: 8 },
@@ -57,7 +58,7 @@ function TokenGate({ onToken }: { onToken: (t: string) => void }) {
   return (
     <div style={{ ...S.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ maxWidth: 400, width: "100%" }}>
-        <p style={{ color: "#2d6a4f", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
+        <p style={{ color: C.green, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
         <h1 style={{ color: "#ffffff", fontSize: 22, margin: "0 0 24px" }}>Admin</h1>
         <label style={S.label}>Editor Secret</label>
         <input
@@ -109,8 +110,13 @@ function Dashboard({ token }: { token: string }) {
   }, [token]);
 
   async function refreshBriefs() {
-    const res = await fetch(`/api/admin/briefs?token=${token}`);
-    if (res.ok) setBriefs(await res.json());
+    try {
+      const res = await fetch(`/api/admin/briefs?token=${token}`);
+      if (res.ok) setBriefs(await res.json());
+      else setError("Failed to refresh briefs — please reload the page");
+    } catch {
+      setError("Failed to refresh briefs — please reload the page");
+    }
   }
 
   async function handlePublish(id: string) {
@@ -164,6 +170,10 @@ function Dashboard({ token }: { token: string }) {
       if (existing && !confirm(`A brief for ${formatDate(today)} already exists. Regenerating will overwrite it. Continue?`)) {
         return;
       }
+    } else if (check.status !== 404) {
+      // 401 or 500 — don't silently proceed
+      setError("Could not check for existing brief — verify your token and try again");
+      return;
     }
 
     const res = await fetch(`/api/generate-brief`, {
@@ -193,8 +203,8 @@ function Dashboard({ token }: { token: string }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
           <div>
-            <p style={{ color: "#2d6a4f", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
-            <h1 style={{ color: "#ffffff", fontSize: 24, margin: "0 0 4px" }}>Brief Dashboard</h1>
+            <p style={{ color: C.green, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
+          <h1 style={{ color: "#ffffff", fontSize: 24, margin: "0 0 4px" }}>Brief Dashboard</h1>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: 0 }}>{briefs.length} total briefs</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
@@ -216,15 +226,15 @@ function Dashboard({ token }: { token: string }) {
             </p>
             {drafts.map((b) => (
               <BriefRow
-                key={b.date}
+                key={b.id}
                 brief={b}
                 token={token}
-                onPublish={() => handlePublish(b.date)}
-                onUnpublish={() => handleUnpublish(b.date)}
-                onDelete={() => handleDelete(b.date)}
-                publishing={publishing === b.date}
-                unpublishing={unpublishing === b.date}
-                deleting={deleting === b.date}
+                onPublish={() => handlePublish(b.id)}
+                onUnpublish={() => handleUnpublish(b.id)}
+                onDelete={() => handleDelete(b.id)}
+                publishing={publishing === b.id}
+                unpublishing={unpublishing === b.id}
+                deleting={deleting === b.id}
               />
             ))}
           </div>
@@ -238,15 +248,15 @@ function Dashboard({ token }: { token: string }) {
             </p>
             {published.map((b) => (
               <BriefRow
-                key={b.date}
+                key={b.id}
                 brief={b}
                 token={token}
-                onPublish={() => handlePublish(b.date)}
-                onUnpublish={() => handleUnpublish(b.date)}
-                onDelete={() => handleDelete(b.date)}
-                publishing={publishing === b.date}
-                unpublishing={unpublishing === b.date}
-                deleting={deleting === b.date}
+                onPublish={() => handlePublish(b.id)}
+                onUnpublish={() => handleUnpublish(b.id)}
+                onDelete={() => handleDelete(b.id)}
+                publishing={publishing === b.id}
+                unpublishing={unpublishing === b.id}
+                deleting={deleting === b.id}
               />
             ))}
           </div>
@@ -315,7 +325,7 @@ function BriefRow({
             <>
               <button
                 style={{ ...S.btnGhost }}
-                onClick={() => window.open(`/admin/brief/${brief.date}?token=${token}`, "_self")}
+                onClick={() => window.open(`/admin/brief/${brief.id}?token=${token}`, "_self")}
               >
                 {"Edit →"}
               </button>

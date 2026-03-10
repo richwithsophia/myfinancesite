@@ -3,23 +3,24 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import type { Brief } from "@/app/lib/briefs";
+import { C } from "@/app/lib/brand";
 
 const S = {
-  page:      { background: "#000000", minHeight: "100vh", padding: "32px 24px", fontFamily: "Arial, sans-serif" },
+  page:      { background: "#000000", minHeight: "100vh", padding: "32px 24px", fontFamily: C.sans },
   container: { maxWidth: 720, margin: "0 auto" },
   heading:   { color: "#9ca3af", fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 16, paddingBottom: 8, borderBottom: "1px solid #1a1a1a" },
   label:     { color: "#9ca3af", fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 6, display: "block" },
-  textarea:  { width: "100%", background: "#1a1a1a", color: "#ffffff", border: "1px solid #2a2a2a", borderRadius: 8, padding: "12px", fontSize: 14, lineHeight: 1.6, resize: "vertical" as const, boxSizing: "border-box" as const, fontFamily: "Arial, sans-serif" },
+  textarea:  { width: "100%", background: "#1a1a1a", color: "#ffffff", border: "1px solid #2a2a2a", borderRadius: 8, padding: "12px", fontSize: 14, lineHeight: 1.6, resize: "vertical" as const, boxSizing: "border-box" as const, fontFamily: C.sans },
   mono:      { width: "100%", background: "#1a1a1a", color: "#ffffff", border: "1px solid #2a2a2a", borderRadius: 8, padding: "12px", fontSize: 13, lineHeight: 1.6, resize: "vertical" as const, boxSizing: "border-box" as const, fontFamily: "monospace" },
   section:   { marginBottom: 32 },
   subjectBtn: (selected: boolean) => ({
-    background: selected ? "#2d6a4f" : "#1a1a1a",
-    border: `2px solid ${selected ? "#2d6a4f" : "#2a2a2a"}`,
+    background: selected ? C.green : "#1a1a1a",
+    border: `2px solid ${selected ? C.green : "#2a2a2a"}`,
     borderRadius: 8, padding: "14px 16px", cursor: "pointer",
     color: "#ffffff", fontSize: 14, marginBottom: 10,
     display: "block", width: "100%", textAlign: "left" as const,
   }),
-  btnGreen:  { background: "#2d6a4f", color: "#ffffff", border: "none", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
+  btnGreen:  { background: C.green, color: "#ffffff", border: "none", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
   btnCoral:  { background: "#2a2a2a", color: "#ffffff", border: "1px solid #3a3a3a", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 600, cursor: "pointer" },
   btnGhost:  { background: "none", color: "#6b7280", border: "none", borderRadius: 8, padding: "14px 28px", fontSize: 16, fontWeight: 500, cursor: "pointer" },
   error:     { color: "#f87171", fontSize: 14, marginTop: 8 },
@@ -51,6 +52,7 @@ export default function BriefEditorPage() {
   const [whatToWatch,      setWhatToWatch]      = useState("");
   const [tacticalInsight,  setTacticalInsight]  = useState("");
   const [selectedSubject,  setSelectedSubject]  = useState(0);
+  const [seasonalTip,      setSeasonalTip]      = useState("");
 
   // ─── Load ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +74,7 @@ export default function BriefEditorPage() {
         setKeyDevs(JSON.stringify(data.keyDevelopments, null, 2));
         setWhatToWatch(JSON.stringify(data.whatToWatch, null, 2));
         setTacticalInsight(JSON.stringify(data.tacticalInsight, null, 2));
+        setSeasonalTip(data.seasonalTip ? JSON.stringify(data.seasonalTip, null, 2) : "");
       } catch {
         setError("Failed to load brief");
       } finally {
@@ -84,24 +87,29 @@ export default function BriefEditorPage() {
   // ─── Build payload ────────────────────────────────────────────────────────
 
   function buildPayload() {
-    return {
-      openingSection: {
-        takeaways: JSON.parse(openingTakeaways),
-        context:   openingContext,
-      },
-      quotableInsight,
-      mood,
-      marketPerformance: JSON.parse(marketPerf),
-      keyDevelopments:   JSON.parse(keyDevs),
-      whatToWatch:       JSON.parse(whatToWatch),
-      tacticalInsight:   JSON.parse(tacticalInsight),
-      subjectLines: brief?.subjectLines
-        ? [
-            brief.subjectLines[selectedSubject],
-            brief.subjectLines[selectedSubject === 0 ? 1 : 0],
-          ]
-        : null,
-    };
+    try {
+      return {
+        openingSection: {
+          takeaways: JSON.parse(openingTakeaways),
+          context:   openingContext,
+        },
+        quotableInsight,
+        mood,
+        marketPerformance: JSON.parse(marketPerf),
+        keyDevelopments:   JSON.parse(keyDevs),
+        whatToWatch:       JSON.parse(whatToWatch),
+        tacticalInsight:   JSON.parse(tacticalInsight),
+        subjectLines: brief?.subjectLines
+          ? [
+              brief.subjectLines[selectedSubject],
+              brief.subjectLines[selectedSubject === 0 ? 1 : 0],
+            ]
+          : null,
+        ...(seasonalTip.trim() ? { seasonalTip: JSON.parse(seasonalTip) } : {}),
+      };
+    } catch {
+      throw new Error("Invalid JSON — check fields for syntax errors");
+    }
   }
 
   // ─── Save ─────────────────────────────────────────────────────────────────
@@ -178,7 +186,7 @@ export default function BriefEditorPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-          <p style={{ color: "#2d6a4f", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
+          <p style={{ color: C.green, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, margin: "0 0 4px" }}>Rich with Sophia</p>
           <h1 style={{ color: "#ffffff", fontSize: 24, margin: "0 0 4px" }}>Edit Brief</h1>
           <p style={{ color: "#9ca3af", fontSize: 14, margin: 0 }}>{id} · {brief?.status}</p>
         </div>
@@ -241,6 +249,12 @@ export default function BriefEditorPage() {
         <div style={S.section}>
           <p style={S.heading}>What to Watch — JSON</p>
           <textarea rows={16} style={S.mono} value={whatToWatch} onChange={(e) => setWhatToWatch(e.target.value)} />
+        </div>
+
+        {/* Seasonal Tip */}
+        <div style={S.section}>
+          <p style={S.heading}>Seasonal Tip — JSON (optional, leave blank to omit)</p>
+          <textarea rows={8} style={S.mono} value={seasonalTip} onChange={(e) => setSeasonalTip(e.target.value)} />
         </div>
 
         {/* Error */}

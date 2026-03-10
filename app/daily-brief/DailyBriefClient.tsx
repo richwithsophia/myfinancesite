@@ -72,7 +72,7 @@ function getMoodColor(mood: string): string {
 
 // ─── Empty / error state ───────────────────────────────────────────────────────
 
-function EmptyState({ fetchError }: { fetchError?: boolean; allBriefs?: Brief[] }) {
+function EmptyState({ fetchError }: { fetchError?: boolean }) {
   return (
     <PageWrapper>
       <main>
@@ -416,7 +416,7 @@ export default function DailyBriefClient({ brief, allBriefs = [], fetchError, in
 
           <Divider my="0" />
 
-          {/* ════════════════════════════════════════
+                    {/* ════════════════════════════════════════
               EDITORIAL SPLIT
               ════════════════════════════════════════ */}
 

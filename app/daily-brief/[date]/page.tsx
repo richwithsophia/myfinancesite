@@ -11,6 +11,48 @@ import { redirect } from "next/navigation";
 import { getBrief, getAllBriefs, type Brief } from "@/app/lib/briefs";
 import DailyBriefClient from "../DailyBriefClient";
 
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ date: string }>;
+}): Promise<Metadata> {
+  const { date } = await params;
+
+  let title = "Daily Brief";
+  let description = "Your weekday market brief — what moved, why it matters, and what to do about it.";
+
+  try {
+    const brief = await getBrief(date);
+    if (brief && brief.status === "published") {
+      const formatted = new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+        month: "long", day: "numeric", year: "numeric",
+      });
+      title = `Daily Brief — ${formatted}`;
+      if (brief.openingSection?.takeaways?.[0]) {
+        description = brief.openingSection.takeaways[0];
+      }
+    }
+  } catch {
+    // fall through to defaults
+  }
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | Rich with Sophia`,
+      description,
+      url: `https://myfinancesite.vercel.app/daily-brief/${date}`,
+    },
+    twitter: {
+      title: `${title} | Rich with Sophia`,
+      description,
+    },
+  };
+}
+
 export default async function DailyBriefDatePage({
   params,
 }: {
