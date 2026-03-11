@@ -8,13 +8,15 @@
  *
  * File lives at: app/components/ui/SectionLabel.tsx
  */
+import { C } from "../../lib/brand";
+
 export function SectionLabel({ children, pulse = false }: { children: React.ReactNode; pulse?: boolean }) {
   return (
     <div className="rws-badge">
       {pulse && (
         <span className="animate-pulse" style={{
           width: 6, height: 6, borderRadius: "50%",
-          backgroundColor: "#2D6A4F", display: "inline-block", flexShrink: 0,
+          backgroundColor: C.green, display: "inline-block", flexShrink: 0,
         }} />
       )}
       {children}

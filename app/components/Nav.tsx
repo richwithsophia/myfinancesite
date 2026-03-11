@@ -61,6 +61,7 @@ export default function Nav() {
             <a href="/daily-brief" style={{
               backgroundColor: C.coral, color: "#fff", fontSize: "0.875rem",
               fontWeight: 600, padding: "0.5rem 1.25rem", borderRadius: 9999, textDecoration: "none",
+              minHeight: 44, display: "inline-flex", alignItems: "center",
             }}>
               Get the Brief →
             </a>
@@ -71,6 +72,7 @@ export default function Nav() {
             className="nav-hamburger"
             onClick={() => setOpen(prev => !prev)}
             aria-label="Toggle menu"
+            aria-expanded={open}
             style={{ flexDirection: "column", gap: 5, padding: 8, background: "none", border: "none", cursor: "pointer" }}
           >
             <span style={{
@@ -100,9 +102,10 @@ export default function Nav() {
             const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (
               <a key={href} href={href} style={{
-                fontSize: "0.875rem", padding: "0.25rem 0",
+                fontSize: "0.875rem", padding: "0.625rem 0",
                 fontWeight: active ? 600 : 500,
                 color: active ? C.green : C.muted, textDecoration: "none",
+                minHeight: 44, display: "flex", alignItems: "center",
               }}>
                 {label}
               </a>

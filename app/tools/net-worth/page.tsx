@@ -119,7 +119,7 @@ export default function NetWorthCalculator() {
   return (
     <PageWrapper>
       <main>
-        <div className="rws-container" style={{ paddingTop: "5.5rem", paddingBottom: "2rem" }}>
+        <div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "2rem" }}>
 
           {/* ── PAGE HEADER ── */}
           <div style={{ marginBottom: "1.5rem" }}>

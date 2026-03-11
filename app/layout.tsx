@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | Rich with Sophia",
   },
   description: "Personal finance and market news explained simply for high-earning women. Get your daily brief, calculate your net worth, and actually understand what's happening in the markets.",
-  keywords: ["personal finance for women", "market news explained simply", "investing for women", "daily market brief", "net worth calculator"],
+  keywords: ["personal finance for women", "market news explained simply", "investing for women", "daily market brief", "net worth calculator", "financial literacy"],
   openGraph: {
     siteName: "Rich with Sophia",
     type: "website",
@@ -45,12 +45,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable} antialiased`}>
-        <style>{`
-          next-route-announcer,
-          [data-nextjs-route-announcer] {
-            display: none !important;
-          }
-        `}</style>
         {children}
       </body>
     </html>

@@ -55,9 +55,9 @@ body {
   max-width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #FAFAF7;
-  color: #1A1A1A;
-  font-family: "Inter", sans-serif;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -200,7 +200,7 @@ next-route-announcer,
   .rws-grid-market { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 768px) {
-  .rws-grid-market { grid-template-columns: repeat(5, 1fr); }
+  .rws-grid-market { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* Editorial: full width → 2fr content + 1fr sidebar */

@@ -49,7 +49,7 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
 
   if (status === "success") {
     return (
-      <p style={{ fontSize: "0.9rem", color: "#2D6A4F", fontWeight: 600, margin: 0 }}>
+      <p style={{ fontSize: "0.9rem", color: C.green, fontWeight: 600, margin: 0 }}>
         ✓ You&apos;re in! Welcome to Rich with Sophia.
       </p>
     );
@@ -65,7 +65,7 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           className="rws-email-input"
-          style={{ flex: 1, minWidth: "12rem", borderColor: status === "error" ? "#E07A5F" : undefined }}
+          style={{ flex: 1, minWidth: "12rem", borderColor: status === "error" ? C.coral : undefined }}
           disabled={status === "loading"}
         />
         <button
@@ -76,7 +76,7 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
           {status === "loading" ? "Subscribing..." : "Subscribe →"}
         </button>
         {status === "error" && (
-          <p style={{ width: "100%", fontSize: "0.8rem", color: "#E07A5F", margin: "0.25rem 0 0" }}>
+          <p style={{ width: "100%", fontSize: "0.8rem", color: C.coral, margin: "0.25rem 0 0" }}>
             {errorMsg}
           </p>
         )}
@@ -93,7 +93,7 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
         onChange={(e) => setEmail(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         className="rws-email-input"
-        style={{ borderColor: status === "error" ? "#E07A5F" : undefined }}
+        style={{ borderColor: status === "error" ? C.coral : undefined }}
         disabled={status === "loading"}
       />
       <button
@@ -105,9 +105,9 @@ export function SubscribeForm({ compact = false }: SubscribeFormProps) {
         {status === "loading" ? "Subscribing..." : "Get the Daily Brief →"}
       </button>
       {status === "error" && (
-        <p style={{ fontSize: "0.8rem", color: "#E07A5F", margin: 0 }}>{errorMsg}</p>
+        <p style={{ fontSize: "0.8rem", color: C.coral, margin: 0 }}>{errorMsg}</p>
       )}
-      <p style={{ fontSize: "0.8rem", color: "#6B6760", margin: 0 }}>Free. No spam. Unsubscribe anytime.</p>
+      <p style={{ fontSize: "0.8rem", color: C.muted, margin: 0 }}>Free. No spam. Unsubscribe anytime.</p>
     </div>
   );
 }
