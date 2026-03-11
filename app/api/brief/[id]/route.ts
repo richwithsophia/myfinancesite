@@ -147,7 +147,7 @@ function publishConfirmPage(id: string, siteUrl: string): string {
     <div style="font-size:48px;margin-bottom:24px;">✓</div>
     <h1 style="color:#ffffff;font-size:28px;margin:0 0 12px;">Brief Published</h1>
     <p style="color:#9ca3af;font-size:16px;margin:0 0 32px;">
-      The ${id} brief is now live on your site.
+      The ${escapeHtml(id)} brief is now live on your site.
     </p>
     <a href="${siteUrl}/daily-brief" style="display:inline-block;background:#2d6a4f;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">
       View Live Brief →
@@ -165,7 +165,7 @@ function errorPage(message: string): string {
 <body style="background:#000000;color:#ffffff;font-family:Arial,sans-serif;margin:0;padding:48px 24px;">
   <div style="max-width:480px;margin:0 auto;text-align:center;">
     <h1 style="color:#f87171;font-size:24px;">Something went wrong</h1>
-    <p style="color:#9ca3af;">${message}</p>
+    <p style="color:#9ca3af;">${escapeHtml(message)}</p>
   </div>
 </body>
 </html>`.trim();

@@ -242,19 +242,19 @@ next-route-announcer,
 
 /* Section overline label */
 .rws-label {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6B6760;
+  color: var(--color-muted);
   margin-bottom: 0.875rem;
 }
 
 /* Standard content card */
 .rws-card {
-  background-color: #F2F0EB;
-  border: 1px solid #E5E2DC;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.5rem;
 }
@@ -265,7 +265,7 @@ next-route-announcer,
 /* White bordered card */
 .rws-card-white {
   background-color: #FFFFFF;
-  border: 1px solid #E5E2DC;
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   padding: 1.5rem;
 }
@@ -280,14 +280,14 @@ next-route-announcer,
   gap: 0.5rem;
   border-radius: 9999px;
   padding: 0.4rem 0.875rem;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background-color: #2D6A4F18;
-  border: 1px solid #2D6A4F30;
-  color: #2D6A4F;
+  background-color: color-mix(in srgb, var(--color-green) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-green) 19%, transparent);
+  color: var(--color-green);
   width: fit-content;
   margin-bottom: 0.875rem;
 }
@@ -295,7 +295,7 @@ next-route-announcer,
 /* Horizontal divider */
 .rws-divider {
   border: none;
-  border-top: 1px solid #E5E2DC;
+  border-top: 1px solid var(--color-border);
   margin: 2.5rem 0;
   width: 100%;
 }
@@ -307,7 +307,7 @@ next-route-announcer,
    ============================================================ */
 
 .rws-cta-band {
-  background-color: #2D6A4F;
+  background-color: var(--color-green);
   border-radius: 1rem;
   padding: 1.75rem 1.5rem;
   display: flex;
@@ -325,7 +325,7 @@ next-route-announcer,
 }
 
 .rws-cta-band-full {
-  background-color: #2D6A4F;
+  background-color: var(--color-green);
   padding: 4rem 1.25rem;
   text-align: center;
 }
@@ -352,23 +352,23 @@ next-route-announcer,
 .rws-email-input {
   width: 100%;
   padding: 0.75rem 1.25rem;
-  border: 1.5px solid #E5E2DC;
+  border: 1.5px solid var(--color-border);
   border-radius: 9999px;
   font-size: 0.9rem;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   outline: none;
   background-color: #FFFFFF;
-  color: #1A1A1A;
+  color: var(--color-ink);
   transition: border-color 0.15s ease;
 }
 .rws-email-input:focus {
-  border-color: #2D6A4F;
-  box-shadow: 0 0 0 3px #2D6A4F18;
+  border-color: var(--color-green);
+  box-shadow: var(--shadow-focus);
 }
 
 /* Primary button */
 .rws-btn-primary {
-  background-color: #E07A5F;
+  background-color: var(--color-coral);
   color: #FFFFFF;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
@@ -376,7 +376,7 @@ next-route-announcer,
   border: none;
   cursor: pointer;
   font-size: 0.9rem;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -388,7 +388,7 @@ next-route-announcer,
 
 /* Secondary button */
 .rws-btn-secondary {
-  background-color: #2D6A4F;
+  background-color: var(--color-green);
   color: #FFFFFF;
   font-weight: 600;
   padding: 0.625rem 1.25rem;
@@ -396,7 +396,7 @@ next-route-announcer,
   border: none;
   cursor: pointer;
   font-size: 0.85rem;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   display: inline-flex;
   align-items: center;
   justify-content: center;
