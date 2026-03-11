@@ -9,6 +9,7 @@
 "use client";
 
 import { useState } from "react";
+import { C } from "../../lib/brand";
 
 type SubscribeFormProps = { compact?: boolean };
 
