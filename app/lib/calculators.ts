@@ -111,7 +111,7 @@ export function calculateAmortization(
     remaining = endingBalance;
     month++;
 
-    if (remaining <= 0) break;
+    if (remaining < 0.01) break;
   }
 
   return rows;
