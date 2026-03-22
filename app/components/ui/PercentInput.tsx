@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { C } from "../../lib/brand";
 
 type PercentInputProps = {
@@ -29,6 +29,7 @@ export function PercentInput({
   placeholder = "0",
 }: PercentInputProps) {
   const [focused, setFocused] = useState(false);
+  const id = useId();
 
   function sanitize(raw: string): string {
     const stripped = raw.replace(/[^0-9.]/g, "");
@@ -42,15 +43,15 @@ export function PercentInput({
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
 
       {/* Label */}
-      <label style={{
-        fontSize: "0.875rem",
-        fontWeight: 600,
-        color: C.text,
-        fontFamily: C.sans,
-        lineHeight: 1.2,
-      }}>
-        {label}
-      </label>
+      <label htmlFor={id} style={{
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  color: C.text,
+  fontFamily: C.sans,
+  lineHeight: 1.2,
+}}>
+  {label}
+</label>
 
       {/* Hint */}
       {hint && (
@@ -80,6 +81,7 @@ export function PercentInput({
         }}
       >
         <input
+          id={id}
           type="text"
           inputMode="decimal"
           placeholder={placeholder}

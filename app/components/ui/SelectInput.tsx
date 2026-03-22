@@ -15,7 +15,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { C } from "../../lib/brand";
 
 type SelectOption = {
@@ -39,20 +39,21 @@ export function SelectInput({
   options,
 }: SelectInputProps) {
   const [focused, setFocused] = useState(false);
+  const id = useId();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
 
       {/* Label */}
-      <label style={{
-        fontSize: "0.875rem",
-        fontWeight: 600,
-        color: C.text,
-        fontFamily: C.sans,
-        lineHeight: 1.2,
-      }}>
-        {label}
-      </label>
+      <label htmlFor={id} style={{
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  color: C.text,
+  fontFamily: C.sans,
+  lineHeight: 1.2,
+}}>
+  {label}
+</label>
 
       {/* Hint */}
       {hint && (
@@ -73,10 +74,11 @@ export function SelectInput({
         width: "100%",
       }}>
         <select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+  id={id}
+  value={value}
+  onChange={e => onChange(e.target.value)}
+  onFocus={() => setFocused(true)}
+  onBlur={() => setFocused(false)}
           style={{
             width: "100%",
             appearance: "none",

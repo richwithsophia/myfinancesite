@@ -23,7 +23,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { C } from "../../lib/brand";
 import { sanitizeCurrencyInput } from "../../lib/calculators";
 
@@ -45,6 +45,7 @@ export function ToggleInput({
   onModeChange,
 }: ToggleInputProps) {
   const [focused, setFocused] = useState(false);
+  const id = useId();
 
   function handleModeChange(next: "dollar" | "percent") {
     if (next === mode) return;
@@ -67,15 +68,15 @@ export function ToggleInput({
 
       {/* Label row with segmented toggle */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <label style={{
-          fontSize: "0.875rem",
-          fontWeight: 600,
-          color: C.text,
-          fontFamily: C.sans,
-          lineHeight: 1.2,
-        }}>
-          {label}
-        </label>
+        <label htmlFor={id} style={{
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  color: C.text,
+  fontFamily: C.sans,
+  lineHeight: 1.2,
+}}>
+  {label}
+</label>
 
         {/* Segmented control */}
         <div style={{
@@ -145,6 +146,7 @@ export function ToggleInput({
           </span>
         )}
         <input
+          id={id}
           type="text"
           inputMode="decimal"
           placeholder="0"

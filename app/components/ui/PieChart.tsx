@@ -1,9 +1,11 @@
 /**
  * app/components/ui/PieChart.tsx
- * Inline SVG donut chart with center label/value and legend below.
+ * Inline SVG donut chart with center label/value and legend.
  * Zero-value segments are hidden from both the chart and legend.
  * Legend includes a "Total Payment" totals row at the bottom.
- * Uses formatCurrency from calculators.ts for legend dollar amounts.
+ *
+ * layout="vertical"   — donut on top, legend below (default)
+ * layout="horizontal" — donut on left, legend on right, equal columns
  *
  * Usage:
  *   <PieChart
@@ -11,14 +13,9 @@
  *       { label: "Principal", value: 20000, color: C.green },
  *       { label: "Interest",  value: 4800,  color: C.coral },
  *     ]}
- *     centerValue="$1,802"
+ *     centerValue="$24,800"
  *   />
- *   <PieChart
- *     data={[...]}
- *     centerValue="$1,802"
- *     centerLabel="Monthly"
- *     size={180}
- *   />
+ *   <PieChart data={[...]} centerValue="$1,802" centerLabel="Monthly" layout="horizontal" size={140} />
  */
 
 import { C, labelStyle } from "../../lib/brand";
@@ -35,6 +32,7 @@ type PieChartProps = {
   centerValue: string;
   centerLabel?: string;
   size?: number;
+  layout?: "vertical" | "horizontal";
 };
 
 export function PieChart({
@@ -42,18 +40,17 @@ export function PieChart({
   centerValue,
   centerLabel = "Total",
   size = 200,
+  layout = "vertical",
 }: PieChartProps) {
-  // Filter out zero-value segments
   const slices = data.filter(d => d.value > 0);
   const total  = slices.reduce((sum, d) => sum + d.value, 0);
 
-  // Nothing to render
   if (slices.length === 0 || total === 0) return null;
 
-  const cx         = size / 2;
-  const cy         = size / 2;
-  const outerR     = size / 2 - 4;
-  const innerR     = outerR * 0.58; // donut hole — thick enough to see slices, roomy enough for center text
+  const cx     = size / 2;
+  const cy     = size / 2;
+  const outerR = size / 2 - 4;
+  const innerR = outerR * 0.58;
 
   function polarToCartesian(angle: number, r: number) {
     const rad = ((angle - 90) * Math.PI) / 180;
@@ -64,24 +61,21 @@ export function PieChart({
   }
 
   function buildPath(startAngle: number, endAngle: number) {
-// Full circle edge case — uses even-odd fill rule to cut donut hole
-if (endAngle - startAngle >= 359.999) {
-  return [
-    `M ${cx} ${cy - outerR}`,
-    `A ${outerR} ${outerR} 0 1 1 ${parseFloat((cx - 0.001).toFixed(4))} ${cy - outerR}`,
-    `Z`,
-    `M ${cx} ${cy - innerR}`,
-    `A ${innerR} ${innerR} 0 1 1 ${parseFloat((cx - 0.001).toFixed(4))} ${cy - innerR}`,
-    `Z`,
-  ].join(" ");
-}
-
+    if (endAngle - startAngle >= 359.999) {
+      return [
+        `M ${cx} ${cy - outerR}`,
+        `A ${outerR} ${outerR} 0 1 1 ${parseFloat((cx - 0.001).toFixed(4))} ${cy - outerR}`,
+        `Z`,
+        `M ${cx} ${cy - innerR}`,
+        `A ${innerR} ${innerR} 0 1 1 ${parseFloat((cx - 0.001).toFixed(4))} ${cy - innerR}`,
+        `Z`,
+      ].join(" ");
+    }
     const outerStart = polarToCartesian(startAngle, outerR);
     const outerEnd   = polarToCartesian(endAngle,   outerR);
     const innerStart = polarToCartesian(startAngle, innerR);
     const innerEnd   = polarToCartesian(endAngle,   innerR);
     const largeArc   = endAngle - startAngle > 180 ? 1 : 0;
-
     return [
       `M ${outerStart.x} ${outerStart.y}`,
       `A ${outerR} ${outerR} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
@@ -100,113 +94,133 @@ if (endAngle - startAngle >= 359.999) {
     return { ...slice, path: buildPath(startAngle, endAngle) };
   });
 
-  // Font size for center value — scales with donut size
   const centerValueSize = size < 160 ? "0.9rem" : "1.1rem";
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
-
-      {/* SVG donut */}
-      <div style={{ position: "relative", width: size, height: size }}>
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          style={{ overflow: "visible" }}
-        >
-          {paths.map((slice, i) => (
-            <path
-              key={i}
-              d={slice.path}
-              fill={slice.color}
-              fillRule="evenodd"
-              stroke={C.white}
-              strokeWidth={2}
-            />
-          ))}
-        </svg>
-
-        {/* Center text */}
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          textAlign: "center",
-          pointerEvents: "none",
-        }}>
-          <p style={{
-            ...labelStyle,
-            fontSize: "0.6rem",
-            margin: 0,
-            marginBottom: "0.2rem",
-          }}>
-            {centerLabel}
-          </p>
-          <p style={{
-            fontFamily: C.serif,
-            fontSize: centerValueSize,
-            fontWeight: 700,
-            color: C.text,
-            margin: 0,
-            whiteSpace: "nowrap",
-          }}>
-            {centerValue}
-          </p>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
+  // ── SVG donut ──────────────────────────────────────────────────────────────
+  const donut = (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        style={{ overflow: "visible" }}
+      >
         {paths.map((slice, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <div style={{
-                width: "0.625rem",
-                height: "0.625rem",
-                borderRadius: "50%",
-                backgroundColor: slice.color,
-                flexShrink: 0,
-              }} />
-              <span style={{ ...labelStyle, fontSize: "0.7rem", margin: 0 }}>
-                {slice.label}
-              </span>
-            </div>
-            <span style={{
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              color: C.text,
-              fontFamily: C.sans,
-            }}>
-              {formatCurrency(slice.value)}
-            </span>
-          </div>
+          <path
+            key={i}
+            d={slice.path}
+            fill={slice.color}
+            fillRule="evenodd"
+            stroke={C.white}
+            strokeWidth={2}
+          />
         ))}
+      </svg>
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        textAlign: "center",
+        pointerEvents: "none",
+      }}>
+        <p style={{ ...labelStyle, fontSize: "0.6rem", margin: 0, marginBottom: "0.2rem" }}>
+          {centerLabel}
+        </p>
+        <p style={{
+          fontFamily: C.serif,
+          fontSize: centerValueSize,
+          fontWeight: 700,
+          color: C.text,
+          margin: 0,
+          whiteSpace: "nowrap",
+        }}>
+          {centerValue}
+        </p>
+      </div>
+    </div>
+  );
 
-        {/* Total Payment row */}
-        <div style={{
+  // ── Legend ─────────────────────────────────────────────────────────────────
+  const legend = (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem", width: "100%" }}>
+      {paths.map((slice, i) => (
+        <div key={i} style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "0.75rem",
-          borderTop: `1px solid ${C.border}`,
-          paddingTop: "0.5rem",
-          marginTop: "0.25rem",
+          gap: "0.5rem",
         }}>
-          <span style={{ ...labelStyle, fontSize: "0.7rem", margin: 0 }}>
-            Total Payment
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+            <div style={{
+              width: "0.5rem",
+              height: "0.5rem",
+              borderRadius: "50%",
+              backgroundColor: slice.color,
+              flexShrink: 0,
+            }} />
+            <span style={{ ...labelStyle, fontSize: "0.68rem", margin: 0, whiteSpace: "nowrap" }}>
+              {slice.label}
+            </span>
+          </div>
           <span style={{
             fontSize: "0.875rem",
-            fontWeight: 700,
+            fontWeight: 600,
             color: C.text,
             fontFamily: C.sans,
+            whiteSpace: "nowrap",
           }}>
-            {centerValue}
+            {formatCurrency(slice.value)}
           </span>
         </div>
-      </div>
+      ))}
 
+      {/* Total Payment row */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "0.5rem",
+        borderTop: `1px solid ${C.border}`,
+        paddingTop: "0.625rem",
+        marginTop: "0.125rem",
+      }}>
+        <span style={{ ...labelStyle, fontSize: "0.68rem", margin: 0, whiteSpace: "nowrap" }}>
+          Total Payment
+        </span>
+        <span style={{
+          fontSize: "0.875rem",
+          fontWeight: 700,
+          color: C.text,
+          fontFamily: C.sans,
+          whiteSpace: "nowrap",
+        }}>
+          {centerValue}
+        </span>
+      </div>
     </div>
   );
+
+  // ── Vertical layout ────────────────────────────────────────────────────────
+  if (layout === "vertical") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
+        {donut}
+        {legend}
+      </div>
+    );
+  }
+
+  // ── Horizontal layout ──────────────────────────────────────────────────────
+  return (
+  <div className="rws-pie-horizontal">
+    <div className="rws-pie-horizontal-donut">
+      {donut}
+    </div>
+    <div className="rws-pie-divider" />
+    <div className="rws-pie-horizontal-legend">
+      {legend}
+    </div>
+  </div>
+);
 }

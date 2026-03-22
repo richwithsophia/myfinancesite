@@ -405,3 +405,114 @@ next-route-announcer,
   min-height: 44px;
 }
 .rws-btn-secondary:hover { opacity: 0.9; }
+
+/* ============================================================
+   TOOL PAGES
+   Reusable layout primitives for calculator and tool pages.
+   Control the desktop grid ratio per-page via --tool-grid-cols.
+   Mobile always stacks to a single column — never override this.
+
+   Usage:
+     <div className="rws-grid-tool" style={{ "--tool-grid-cols": "2fr 3fr" } as React.CSSProperties}>
+     <div className="rws-sticky-panel">
+     <input className="rws-text-input" />
+   ============================================================ */
+
+/* Two-column tool layout. Ratio controlled via --tool-grid-cols.
+   Defaults to equal columns if not set. */
+.rws-grid-tool {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .rws-grid-tool {
+    grid-template-columns: var(--tool-grid-cols, 1fr 1fr);
+  }
+}
+
+/* Sticky results panel. Static on mobile, sticky on desktop. */
+.rws-sticky-panel {
+  position: static;
+}
+@media (min-width: 768px) {
+  .rws-sticky-panel {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+/* Generic text input. Matches MoneyInput/PercentInput focus styles.
+   Use for any plain <input type="text"> inside tool pages. */
+.rws-text-input {
+  width: 100%;
+  border: 2px solid var(--color-border);
+  border-radius: 0.625rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  background-color: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rws-text-input:focus {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 9%, transparent);
+}
+
+/* PieChart: horizontal on desktop, vertical on mobile */
+.rws-pie-horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1.25rem;
+}
+.rws-pie-divider { display: none; }
+
+@media (min-width: 768px) {
+  .rws-pie-horizontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+  .rws-pie-horizontal-donut {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+  .rws-pie-divider {
+    display: block;
+    width: 1px;
+    align-self: stretch;
+    background-color: var(--color-border);
+    flex-shrink: 0;
+    margin: 0.25rem 0;
+  }
+  .rws-pie-horizontal-legend {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+  }
+}
+/* On mobile, force stat cards inside tool results to single column */
+.rws-sticky-panel .rws-grid-3 {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .rws-sticky-panel .rws-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .rws-sticky-panel .rws-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

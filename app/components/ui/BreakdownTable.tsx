@@ -44,11 +44,13 @@ export function BreakdownTable({ columns, rows, totalsRow }: BreakdownTableProps
 
   return (
     <div style={{
-      width: "100%",
-      overflowX: "auto",
-      borderRadius: "0.75rem",
-      border: `1px solid ${C.border}`,
-    }}>
+  width: "100%",
+  maxWidth: "100%",
+  overflowX: "auto",
+  borderRadius: "0.75rem",
+  border: `1px solid ${C.border}`,
+  display: "block",
+}}>
       <table style={{
         width: "100%",
         borderCollapse: "collapse",

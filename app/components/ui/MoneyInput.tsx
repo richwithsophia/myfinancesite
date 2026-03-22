@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { C } from "../../lib/brand";
 import { sanitizeCurrencyInput } from "../../lib/calculators";
 
@@ -33,20 +33,21 @@ export function MoneyInput({
   disabled = false,
 }: MoneyInputProps) {
   const [focused, setFocused] = useState(false);
+  const id = useId();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
 
       {/* Label */}
-      <label style={{
-        fontSize: "0.875rem",
-        fontWeight: 600,
-        color: disabled ? C.muted : C.text,
-        fontFamily: C.sans,
-        lineHeight: 1.2,
-      }}>
-        {label}
-      </label>
+      <label htmlFor={id} style={{
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  color: disabled ? C.muted : C.text,
+  fontFamily: C.sans,
+  lineHeight: 1.2,
+}}>
+  {label}
+</label>
 
       {/* Hint */}
       {hint && (
@@ -86,6 +87,7 @@ export function MoneyInput({
           $
         </span>
         <input
+          id={id}
           type="text"
           inputMode="numeric"
           placeholder={placeholder}

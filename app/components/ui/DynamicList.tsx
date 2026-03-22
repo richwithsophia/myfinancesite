@@ -3,6 +3,8 @@
  * Add/remove list of items up to a max count.
  * Add button uses rws-btn-secondary. Remove is a small text link in C.red.
  * The first item never shows a Remove link — at least one item always stays.
+ * Set showRemove={false} to disable the built-in Remove link entirely
+ * (useful when the parent renders its own Remove button inside each item).
  *
  * Usage:
  *   <DynamicList
@@ -13,17 +15,22 @@
  *     renderItem={(loan, i) => <LoanFields loan={loan} index={i} />}
  *     addLabel="Add another loan"
  *   />
+ *
+ *   // Parent handles its own Remove button:
+ *   <DynamicList showRemove={false} ... />
  */
 
 import { C } from "../../lib/brand";
+import type { ReactNode } from "react";
 
 type DynamicListProps<T> = {
   items: T[];
   maxItems: number;
   onAdd: () => void;
   onRemove: (index: number) => void;
-  renderItem: (item: T, index: number) => React.ReactNode;
+  renderItem: (item: T, index: number) => ReactNode;
   addLabel?: string;
+  showRemove?: boolean;
 };
 
 export function DynamicList<T>({
@@ -33,15 +40,15 @@ export function DynamicList<T>({
   onRemove,
   renderItem,
   addLabel = "Add another",
+  showRemove = true,
 }: DynamicListProps<T>) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
-      {/* Items */}
       {items.map((item, i) => (
         <div key={i}>
-          {/* Remove link — hidden for the first item */}
-          {i > 0 && (
+          {/* Remove link — only when showRemove=true and not the first item */}
+          {showRemove && i > 0 && (
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
               <button
                 type="button"
@@ -64,7 +71,6 @@ export function DynamicList<T>({
             </div>
           )}
 
-          {/* Item content */}
           {renderItem(item, i)}
 
           {/* Divider between items */}
