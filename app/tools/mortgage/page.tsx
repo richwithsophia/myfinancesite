@@ -13,6 +13,8 @@
 
 import { useState, useMemo } from "react";
 import PageWrapper from "../../components/PageWrapper";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { useSessionState } from "../../lib/useSessionState";
 import {
   SectionLabel,
   CtaBand,
@@ -87,18 +89,18 @@ function buildYearlySchedule(schedule: ReturnType<typeof calculateAmortization>)
 
 export default function MortgageCalculator() {
   // ── Inputs ──────────────────────────────────────────────────────────────────
-  const [homeValue,   setHomeValue]   = useState("400000");
-  const [downPayment, setDownPayment] = useState("20");
-  const [downMode,    setDownMode]    = useState<"dollar" | "percent">("percent");
-  const [loanType,    setLoanType]    = useState("30");
-  const [rate,        setRate]        = useState("6.8");
-  const [taxValue,    setTaxValue]    = useState("1.2");
-  const [taxMode,     setTaxMode]     = useState<"dollar" | "percent">("percent");
-  const [insurance,   setInsurance]   = useState("1500");
-  const [hoa,         setHoa]         = useState("");
-const [pmiRate,     setPmiRate]     = useState("1");
-  const [tableOpen,   setTableOpen]   = useState(false);
-  const [tableView,   setTableView]   = useState<"yearly" | "monthly">("yearly");
+const [homeValue,   setHomeValue]   = useSessionState("mortgage:homeValue",  "400000");
+const [downPayment, setDownPayment] = useSessionState("mortgage:downPayment", "20");
+const [downMode,    setDownMode]    = useSessionState<"dollar" | "percent">("mortgage:downMode", "percent");
+const [loanType,    setLoanType]    = useSessionState("mortgage:loanType",   "30");
+const [rate,        setRate]        = useSessionState("mortgage:rate",        "6.8");
+const [taxValue,    setTaxValue]    = useSessionState("mortgage:taxValue",    "1.2");
+const [taxMode,     setTaxMode]     = useSessionState<"dollar" | "percent">("mortgage:taxMode", "percent");
+const [insurance,   setInsurance]   = useSessionState("mortgage:insurance",  "1500");
+const [hoa,         setHoa]         = useSessionState("mortgage:hoa",        "");
+const [pmiRate,     setPmiRate]     = useSessionState("mortgage:pmiRate",     "1");
+const [tableOpen,   setTableOpen]   = useState(false);
+const [tableView,   setTableView]   = useState<"yearly" | "monthly">("yearly");
 
 // ── Derived values ──────────────────────────────────────────────────────────
 const homeVal    = parseCurrencyInput(homeValue);
@@ -178,8 +180,8 @@ const pieData = [
   return (
     <PageWrapper>
       <main>
-        <div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "4rem" }}>
-
+         <ErrorBoundary>
+         <div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "4rem" }}>
           {/* ── PAGE HEADER ── */}
           <div style={{ marginBottom: "2rem" }}>
             <SectionLabel>🏠 Tools</SectionLabel>
@@ -447,6 +449,7 @@ const pieData = [
           />
 
         </div>
+        </ErrorBoundary>
       </main>
     </PageWrapper>
   );

@@ -13,6 +13,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import PageWrapper from "../../components/PageWrapper";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { useSessionState } from "../../lib/useSessionState";
 import {
   SectionLabel,
   CtaBand,
@@ -117,10 +119,10 @@ function smartDefault(totalMonthly: number): string {
 // ─── COMPONENT ─────────────────────────────────────────────────────────────────
 
 export default function StudentLoanCalculator() {
-  const [loans, setLoans]               = useState<Loan[]>([emptyLoan(0)]);
-  const [extraPayment, setExtraPayment]     = useState("100");
-  const [tableOpen, setTableOpen]           = useState(false);
-  const [userEditedExtra, setUserEditedExtra] = useState(false);
+  const [loans, setLoans]                     = useSessionState<Loan[]>("student-loan:loans", [emptyLoan(0)]);
+const [extraPayment, setExtraPayment]       = useSessionState<string>("student-loan:extraPayment", "100");
+const [tableOpen, setTableOpen]             = useState(false);
+const [userEditedExtra, setUserEditedExtra] = useState(false);
 
   const validationErrors = useMemo(() => loans.map(loan => {
     const v = validateLoan(loan);
@@ -215,7 +217,8 @@ const impact = useMemo(() =>
   return (
     <PageWrapper>
       <main>
-        <div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "4rem" }}>
+        <ErrorBoundary>
+<div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "4rem" }}>
 
           {/* ── PAGE HEADER ── */}
           <div style={{ marginBottom: "2rem" }}>
@@ -452,6 +455,7 @@ const impact = useMemo(() =>
           />
 
         </div>
+        </ErrorBoundary>
       </main>
     </PageWrapper>
   );

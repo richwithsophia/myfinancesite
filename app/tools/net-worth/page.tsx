@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import PageWrapper from "../../components/PageWrapper";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { useSessionState } from "../../lib/useSessionState";
 import { SectionLabel } from "../../components/ui";
 import { C, labelStyle } from "../../lib/brand";
 
@@ -106,8 +108,8 @@ function MoneyInput({ field, value, onChange }: { field: Field; value: string; o
 }
 
 export default function NetWorthCalculator() {
-  const [assets, setAssets] = useState<Record<string, string>>({});
-  const [liabs,  setLiabs]  = useState<Record<string, string>>({});
+const [assets, setAssets] = useSessionState<Record<string, string>>("net-worth:assets", {});
+const [liabs,  setLiabs]  = useSessionState<Record<string, string>>("net-worth:liabs",  {});
 
   const totalAssets = useMemo(() => ASSET_FIELDS.reduce((s, f)  => s + parseVal(assets[f.id] ?? ""), 0), [assets]);
   const totalLiabs  = useMemo(() => LIABILITY_FIELDS.reduce((s, f) => s + parseVal(liabs[f.id] ?? ""),  0), [liabs]);
@@ -119,6 +121,7 @@ export default function NetWorthCalculator() {
   return (
     <PageWrapper>
       <main>
+        <ErrorBoundary>
         <div className="rws-container" style={{ paddingTop: "7rem", paddingBottom: "2rem" }}>
 
           {/* ── PAGE HEADER ── */}
@@ -212,6 +215,7 @@ export default function NetWorthCalculator() {
           </div>
 
         </div>
+        </ErrorBoundary>
       </main>
     </PageWrapper>
   );
