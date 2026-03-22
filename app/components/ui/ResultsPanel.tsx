@@ -19,7 +19,7 @@ import { C } from "../../lib/brand";
 type ResultsPanelProps = {
   isReady: boolean;
   emptyMessage?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 export function ResultsPanel({
