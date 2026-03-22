@@ -100,46 +100,45 @@ const [pmiRate,     setPmiRate]     = useState("1");
   const [tableOpen,   setTableOpen]   = useState(false);
   const [tableView,   setTableView]   = useState<"yearly" | "monthly">("yearly");
 
-  // ── Derived values ──────────────────────────────────────────────────────────
-  const homeVal    = parseCurrencyInput(homeValue);
-  const termYears  = parseInt(loanType);
-  const annualRate = parseFloat(rate) || 0;
+// ── Derived values ──────────────────────────────────────────────────────────
+const homeVal    = parseCurrencyInput(homeValue);
+const termYears  = parseInt(loanType);
+const annualRate = parseFloat(rate) || 0;
+const monthlyRate = annualRate / 100 / 12;
+const termMonths  = termYears * 12;
 
-  const downDollars = useMemo(() => {
-    const n = parseCurrencyInput(downPayment);
-    if (!n) return 0;
-    if (downMode === "dollar") return n;
-    return homeVal * (n / 100);
-  }, [downPayment, downMode, homeVal]);
+const downDollars = useMemo(() => {
+  const n = parseCurrencyInput(downPayment);
+  if (!n) return 0;
+  if (downMode === "dollar") return n;
+  return homeVal * (n / 100);
+}, [downPayment, downMode, homeVal]);
 
-  const downPercent = homeVal > 0 ? (downDollars / homeVal) * 100 : 0;
-  const loanAmount  = Math.max(0, homeVal - downDollars);
-  const showPMI = downPercent < 20 && homeVal > 0 && loanAmount > 0;
+const downPercent = homeVal > 0 ? (downDollars / homeVal) * 100 : 0;
+const loanAmount  = Math.max(0, homeVal - downDollars);
+const showPMI     = downPercent < 20 && homeVal > 0 && loanAmount > 0;
 
-  const monthlyTax       = toMonthlyDollar(taxValue, taxMode, homeVal);
-  const monthlyPMI       = showPMI ? (loanAmount * (parseFloat(pmiRate) || 0) / 100) / 12 : 0;
-  const monthlyInsurance = parseCurrencyInput(insurance) / 12;
-  const monthlyHoa       = parseCurrencyInput(hoa);
-  const monthlyRate      = annualRate / 100 / 12;
-  const termMonths       = termYears * 12;
+const monthlyPI = useMemo(() => {
+  if (!loanAmount || !annualRate) return 0;
+  if (annualRate === 0) return loanAmount / termMonths;
+  return loanAmount *
+    (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
+    (Math.pow(1 + monthlyRate, termMonths) - 1);
+}, [loanAmount, annualRate, monthlyRate, termMonths]);
 
-  const monthlyPI = useMemo(() => {
-    if (!loanAmount || !annualRate) return 0;
-    if (annualRate === 0) return loanAmount / termMonths;
-    return loanAmount *
-      (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) /
-      (Math.pow(1 + monthlyRate, termMonths) - 1);
-  }, [loanAmount, annualRate, monthlyRate, termMonths]);
+const monthlyTax       = toMonthlyDollar(taxValue, taxMode, homeVal);
+const monthlyInsurance = parseCurrencyInput(insurance) / 12;
+const monthlyHoa       = parseCurrencyInput(hoa);
+const monthlyPMI       = showPMI && loanAmount > 0 ? (loanAmount * (parseFloat(pmiRate) || 0) / 100) / 12 : 0;
+const totalMonthly     = monthlyPI + monthlyTax + monthlyInsurance + monthlyHoa + monthlyPMI;
 
-  const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyHoa + monthlyPMI;
+const schedule = useMemo(() => {
+  if (!loanAmount || !monthlyPI) return [];
+  return calculateAmortization(loanAmount, annualRate, monthlyPI);
+}, [loanAmount, annualRate, monthlyPI]);
 
-  const schedule = useMemo(() => {
-    if (!loanAmount || !monthlyPI) return [];
-    return calculateAmortization(loanAmount, annualRate, monthlyPI);
-  }, [loanAmount, annualRate, monthlyPI]);
-
-  const totalInterest = useMemo(() => calculateTotalInterest(schedule), [schedule]);
-  const hasResults    = loanAmount > 0 && monthlyPI > 0;
+const totalInterest = useMemo(() => calculateTotalInterest(schedule), [schedule]);
+const hasResults = loanAmount > 0 && monthlyPI > 0 && annualRate > 0;
 
   // ── Table data ──────────────────────────────────────────────────────────────
   const yearlyRows = useMemo(() => buildYearlySchedule(schedule), [schedule]);
@@ -256,12 +255,20 @@ const pieData = [
               />
 
               <PercentInput
-                label="Interest Rate"
-                hint="Your annual interest rate"
-                value={rate}
-                onChange={setRate}
-                placeholder="6.8"
-              />
+  label="Interest Rate"
+  hint="Your annual interest rate"
+  value={rate}
+  onChange={setRate}
+  placeholder="6.8"
+/>
+
+{parseFloat(rate) === 0 && rate !== "" && (
+  <InsightCallout
+    variant="warning"
+    icon="⚠️"
+    message="Please enter a valid interest rate. Mortgages require a rate greater than 0%."
+  />
+)}
 
               <hr className="rws-divider" style={{ margin: "0.25rem 0" }} />
 

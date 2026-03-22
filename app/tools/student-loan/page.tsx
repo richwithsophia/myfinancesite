@@ -28,7 +28,6 @@ import {
 import { C, labelStyle } from "../../lib/brand";
 import {
   parseCurrencyInput,
-  sanitizeCurrencyInput,
   calculateAmortization,
   calculatePayoffDate,
   formatYearsMonths,
@@ -180,7 +179,7 @@ const impact = useMemo(() =>
   }
 
   const tableRows = results.map(r => ({
-    loan:      r.name,
+  loan:      r.name || `Loan`,
     principal: formatCurrency(r.totalPrincipal),
     interest:  formatCurrency(r.totalInterest),
     total:     formatCurrency(r.totalPaid),
@@ -370,7 +369,7 @@ const impact = useMemo(() =>
                         value={extraPayment}
                         onChange={v => {
   setUserEditedExtra(true);
-  setExtraPayment(sanitizeCurrencyInput(v));
+  setExtraPayment(v);
 }}
                         placeholder="100"
                       />
@@ -396,7 +395,7 @@ const impact = useMemo(() =>
                   </div>
 
                   {/* ── ROW 4: Collapsible table ── */}
-<div style={{ minWidth: 0, width: "100%", overflowX: "auto" }}>
+<div style={{ minWidth: 0, width: "100%" }}>
                     <button
                       type="button"
                       aria-expanded={tableOpen}
@@ -421,6 +420,7 @@ const impact = useMemo(() =>
                     </button>
 
                     {tableOpen && (
+                      <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "auto" }}>
                       <BreakdownTable
                         columns={[
                           { key: "loan",      label: "Loan Name",       align: "left"  },
@@ -432,6 +432,7 @@ const impact = useMemo(() =>
                         rows={tableRows}
                         totalsRow={totalsRow}
                       />
+                      </div>
                     )}
                   </div>
 
