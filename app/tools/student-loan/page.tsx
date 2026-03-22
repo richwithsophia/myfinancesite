@@ -13,8 +13,9 @@
 
 import { useState, useMemo, useEffect } from "react";
 import PageWrapper from "../../components/PageWrapper";
-import { SectionLabel, CtaBand } from "../../components/ui";
 import {
+  SectionLabel,
+  CtaBand,
   MoneyInput,
   PercentInput,
   StatCard,
@@ -33,6 +34,8 @@ import {
   formatYearsMonths,
   formatCurrency,
   calculateTotalInterest,
+  computeAvalancheImpact,
+  type AvalancheLoan,
 } from "../../lib/calculators";
 import { isValidRate, isValidBalance, isValidPayment } from "../../lib/validators";
 
@@ -112,94 +115,6 @@ function smartDefault(totalMonthly: number): string {
   return String(rounded);
 }
 
-/**
- * Correct avalanche simulation with rollover.
- * Runs a unified month-by-month simulation across all loans simultaneously.
- * When a loan pays off, its freed minimum payment rolls immediately into
- * the extra pool for the following month, applied to the next highest-rate loan.
- *
- * Returns baseline vs extra-payment comparison:
- * - monthsSaved: how many months sooner all loans are paid off
- * - interestSaved: total interest saved across all loans
- * - newPayoffDate: new debt-free date with extra payment
- */
-function computeAvalancheImpact(
-  results: LoanResult[],
-  extraMonthly: number,
-  baselineMaxMonths: number,
-  baselineTotalInterest: number,
-): { monthsSaved: number; interestSaved: number; newPayoffDate: string } | null {
-  if (extraMonthly < 25 || results.length === 0) return null;
-
-  // Build mutable loan state — sorted by rate descending for avalanche targeting
-  type LoanState = {
-    balance: number;
-    monthlyRate: number;
-    minPayment: number;
-    paid: boolean;
-  };
-
-  const loanStates: LoanState[] = results
-    .slice()
-    .sort((a, b) => b.rate - a.rate)
-    .map(r => ({
-      balance:     r.totalPrincipal,
-      monthlyRate: r.rate / 100 / 12,
-      minPayment:  r.monthlyPayment,
-      paid:        false,
-    }));
-
-  let totalInterestPaid = 0;
-  let month             = 0;
-  let extraPool         = extraMonthly; // starts as just the extra payment
-  const MAX_MONTHS      = 600;
-
-  while (month < MAX_MONTHS) {
-    const allPaid = loanStates.every(l => l.paid);
-    if (allPaid) break;
-
-    month++;
-
-    // Find the current avalanche target — highest-rate unpaid loan
-    const targetIdx = loanStates.findIndex(l => !l.paid);
-
-    loanStates.forEach((loan, idx) => {
-      if (loan.paid) return;
-
-      // Interest accrues
-      const interest = loan.balance * loan.monthlyRate;
-      totalInterestPaid += interest;
-
-      // Payment = min payment + extra pool (only for avalanche target)
-      const payment = idx === targetIdx
-        ? loan.minPayment + extraPool
-        : loan.minPayment;
-
-      const principal = Math.min(payment - interest, loan.balance);
-      loan.balance    = Math.max(0, loan.balance - principal);
-
-      // Loan paid off — roll freed minimum into extra pool next month
-      if (loan.balance <= 0) {
-        loan.paid  = true;
-        extraPool += loan.minPayment; // rollover
-      }
-    });
-  }
-
-  const monthsSaved   = baselineMaxMonths - month;
-  const interestSaved = baselineTotalInterest - totalInterestPaid;
-  const newPayoffDate = calculatePayoffDate(month);
-
-  // Only return if there's meaningful impact
-  if (monthsSaved <= 0 && interestSaved < 1) return null;
-
-  return {
-    monthsSaved:   Math.max(0, monthsSaved),
-    interestSaved: Math.max(0, interestSaved),
-    newPayoffDate,
-  };
-}
-
 // ─── COMPONENT ─────────────────────────────────────────────────────────────────
 
 export default function StudentLoanCalculator() {
@@ -248,11 +163,17 @@ useEffect(() => {
 
 const extraMonthly = parseCurrencyInput(debouncedExtra);
 
-  const impact = useMemo(() =>
-    hasResults
-      ? computeAvalancheImpact(results, extraMonthly, maxMonths, totalInterestAll)
-      : null,
-  [results, extraMonthly, maxMonths, totalInterestAll, hasResults]);
+  const avalancheLoans: AvalancheLoan[] = results.map(r => ({
+  balance:        r.totalPrincipal,
+  annualRate:     r.rate,
+  monthlyPayment: r.monthlyPayment,
+}));
+
+const impact = useMemo(() =>
+  hasResults
+    ? computeAvalancheImpact(avalancheLoans, extraMonthly, maxMonths, totalInterestAll)
+    : null,
+[avalancheLoans, extraMonthly, maxMonths, totalInterestAll, hasResults]);
 
   function updateLoan(index: number, field: keyof Loan, value: string) {
     setLoans(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));

@@ -152,3 +152,93 @@ export function formatYearsMonths(totalMonths: number): string {
 export function calculateTotalInterest(schedule: AmortizationRow[]): number {
   return schedule.reduce((sum, row) => sum + row.interestPaid, 0);
 }
+
+// ─── AVALANCHE PAYOFF SIMULATION ───────────────────────────────────────────────
+
+export interface AvalancheLoan {
+  balance: number;
+  annualRate: number;
+  monthlyPayment: number;
+}
+
+/**
+ * Correct avalanche simulation with rollover across multiple loans.
+ * Runs a unified month-by-month simulation simultaneously across all loans.
+ * When a loan pays off, its freed minimum payment rolls immediately into
+ * the extra pool the following month, applied to the next highest-rate loan.
+ *
+ * Returns baseline vs extra-payment comparison:
+ * - monthsSaved: how many months sooner all loans are paid off
+ * - interestSaved: total interest saved across all loans
+ * - newPayoffDate: new debt-free date with extra payment
+ */
+export function computeAvalancheImpact(
+  loans: AvalancheLoan[],
+  extraMonthly: number,
+  baselineMaxMonths: number,
+  baselineTotalInterest: number,
+): { monthsSaved: number; interestSaved: number; newPayoffDate: string } | null {
+  if (extraMonthly < 25 || loans.length === 0) return null;
+
+  type LoanState = {
+    balance: number;
+    monthlyRate: number;
+    minPayment: number;
+    paid: boolean;
+  };
+
+  const loanStates: LoanState[] = loans
+    .slice()
+    .sort((a, b) => b.annualRate - a.annualRate)
+    .map(r => ({
+      balance:     r.balance,
+      monthlyRate: r.annualRate / 100 / 12,
+      minPayment:  r.monthlyPayment,
+      paid:        false,
+    }));
+
+  let totalInterestPaid = 0;
+  let month             = 0;
+  let extraPool         = extraMonthly;
+  const MAX_MONTHS      = 600;
+
+  while (month < MAX_MONTHS) {
+    const allPaid = loanStates.every(l => l.paid);
+    if (allPaid) break;
+
+    month++;
+
+    const targetIdx = loanStates.findIndex(l => !l.paid);
+
+    loanStates.forEach((loan, idx) => {
+      if (loan.paid) return;
+
+      const interest  = loan.balance * loan.monthlyRate;
+      totalInterestPaid += interest;
+
+      const payment   = idx === targetIdx
+        ? loan.minPayment + extraPool
+        : loan.minPayment;
+
+      const principal = Math.min(payment - interest, loan.balance);
+      loan.balance    = Math.max(0, loan.balance - principal);
+
+      if (loan.balance <= 0) {
+        loan.paid  = true;
+        extraPool += loan.minPayment;
+      }
+    });
+  }
+
+  const monthsSaved   = baselineMaxMonths - month;
+  const interestSaved = baselineTotalInterest - totalInterestPaid;
+  const newPayoffDate = calculatePayoffDate(month);
+
+  if (monthsSaved <= 0 && interestSaved < 1) return null;
+
+  return {
+    monthsSaved:   Math.max(0, monthsSaved),
+    interestSaved: Math.max(0, interestSaved),
+    newPayoffDate,
+  };
+}
