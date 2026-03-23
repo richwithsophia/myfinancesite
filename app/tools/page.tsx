@@ -29,6 +29,13 @@ const tools = [
     cta: "Calculate my mortgage →",
   },
   {
+  href: "/tools/debt-payoff", emoji: "💳",
+  available: true, badge: "Live",
+  title: "Debt Payoff Calculator",
+  body: "Compare the snowball and avalanche payoff methods side by side. See which saves you more money and which gets you your first win faster — live as you type.",
+  cta: "Calculate my payoff →",
+},
+  {
     href: "#", emoji: "📊",
     available: false, badge: "Coming Soon",
     title: "Investment Growth Calculator",
