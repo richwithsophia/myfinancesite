@@ -38,8 +38,8 @@ export function formatCurrency(n: number): string {
 export function formatCurrencyCompact(n: number): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? "-" : "";
-  if (abs >= 999_500)  return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
-  if (abs >= 10_000)   return `${sign}$${(abs / 1_000).toFixed(0)}K`;
+  if (abs >= 999_500) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`;
+  if (abs >= 10_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`;
   return formatCurrency(n);
 }
 
@@ -88,12 +88,10 @@ export function calculateAmortization(
   let remaining = balance;
   let month = 1;
 
-  // Safety cap: no loan should exceed 600 months (50 years)
   while (remaining > 0 && month <= 600) {
     const interestPaid = remaining * monthlyRate;
     let principalPaid = monthlyPayment - interestPaid;
 
-    // Final payment: don't overpay
     if (principalPaid > remaining) {
       principalPaid = remaining;
     }
@@ -134,16 +132,12 @@ export function calculatePayoffDate(
 }
 
 /**
- * Converts a total number of months to a human-readable string.
- * e.g. 25 → "2 years and 1 month"
- * e.g. 12 → "1 year and 0 months"
+ * Converts a total number of months to a decimal years string.
+ * e.g. 25 → "2.1 years"
+ * e.g. 12 → "1.0 years"
  */
-export function formatYearsMonths(totalMonths: number): string {
-  const years  = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
-  const yStr   = years  === 1 ? "1 year"   : `${years} years`;
-  const mStr   = months === 1 ? "1 month"  : `${months} months`;
-  return `${yStr} and ${mStr}`;
+export function formatYears(totalMonths: number): string {
+  return `${(totalMonths / 12).toFixed(1)} years`;
 }
 
 /**
@@ -163,14 +157,7 @@ export interface AvalancheLoan {
 
 /**
  * Correct avalanche simulation with rollover across multiple loans.
- * Runs a unified month-by-month simulation simultaneously across all loans.
- * When a loan pays off, its freed minimum payment rolls immediately into
- * the extra pool the following month, applied to the next highest-rate loan.
- *
- * Returns baseline vs extra-payment comparison:
- * - monthsSaved: how many months sooner all loans are paid off
- * - interestSaved: total interest saved across all loans
- * - newPayoffDate: new debt-free date with extra payment
+ * Used exclusively by the student loan page "what if" widget.
  */
 export function computeAvalancheImpact(
   loans: AvalancheLoan[],
@@ -191,16 +178,16 @@ export function computeAvalancheImpact(
     .slice()
     .sort((a, b) => b.annualRate - a.annualRate)
     .map(r => ({
-      balance:     r.balance,
+      balance: r.balance,
       monthlyRate: r.annualRate / 100 / 12,
-      minPayment:  r.monthlyPayment,
-      paid:        false,
+      minPayment: r.monthlyPayment,
+      paid: false,
     }));
 
   let totalInterestPaid = 0;
-  let month             = 0;
-  let extraPool         = extraMonthly;
-  const MAX_MONTHS      = 600;
+  let month = 0;
+  let extraPool = extraMonthly;
+  const MAX_MONTHS = 600;
 
   while (month < MAX_MONTHS) {
     const allPaid = loanStates.every(l => l.paid);
@@ -213,31 +200,31 @@ export function computeAvalancheImpact(
     loanStates.forEach((loan, idx) => {
       if (loan.paid) return;
 
-      const interest  = loan.balance * loan.monthlyRate;
+      const interest = loan.balance * loan.monthlyRate;
       totalInterestPaid += interest;
 
-      const payment   = idx === targetIdx
+      const payment = idx === targetIdx
         ? loan.minPayment + extraPool
         : loan.minPayment;
 
       const principal = Math.min(payment - interest, loan.balance);
-      loan.balance    = Math.max(0, loan.balance - principal);
+      loan.balance = Math.max(0, loan.balance - principal);
 
       if (loan.balance <= 0) {
-        loan.paid  = true;
+        loan.paid = true;
         extraPool += loan.minPayment;
       }
     });
   }
 
-  const monthsSaved   = baselineMaxMonths - month;
+  const monthsSaved = baselineMaxMonths - month;
   const interestSaved = baselineTotalInterest - totalInterestPaid;
   const newPayoffDate = calculatePayoffDate(month);
 
   if (monthsSaved <= 0 && interestSaved < 1) return null;
 
   return {
-    monthsSaved:   Math.max(0, monthsSaved),
+    monthsSaved: Math.max(0, monthsSaved),
     interestSaved: Math.max(0, interestSaved),
     newPayoffDate,
   };
@@ -272,16 +259,15 @@ export interface DebtScheduleResult {
   totalPaid: number;
   totalMonths: number;
   debtFreeDate: string;
-  firstPayoffMonths: number;   // months until first debt is eliminated
-  firstPayoffName: string;     // name of first debt eliminated
+  firstPayoffMonths: number;
+  firstPayoffName: string;
 }
 
 export interface DebtComparisonResult {
   avalanche: DebtScheduleResult;
   snowball: DebtScheduleResult;
-  interestDelta: number;       // avalanche total interest - snowball total interest (always >= 0... usually)
-  firstWinDelta: number;       // snowball firstPayoffMonths - avalanche firstPayoffMonths
-  identicalRates: boolean;     // true if all debts have the same rate
+  interestDelta: number;
+  firstWinDelta: number;
 }
 
 /**
@@ -289,14 +275,16 @@ export interface DebtComparisonResult {
  * Snowball: sorts smallest balance first, rolls freed payments into next smallest.
  * Avalanche: sorts highest rate first, rolls freed payments into next highest rate.
  *
- * Returns a full DebtScheduleResult including per-debt totals, payoff dates,
- * and first-payoff metadata for the winner banner.
+ * Payment logic mirrors debugDebtSchedule exactly:
+ * - Every debt pays its own minimum each month
+ * - Target debt gets: totalMinimums - otherActiveMins + extraMonthly
+ * - As debts pay off their minimums roll into the target automatically
  */
 export function computeDebtSchedule(
   debts: DebtInput[],
   strategy: DebtStrategy,
+  extraMonthly: number = 0,
 ): DebtScheduleResult | null {
-  // Parse and validate inputs
   type ParsedDebt = {
     name: string;
     balance: number;
@@ -311,20 +299,18 @@ export function computeDebtSchedule(
     const payment = parseCurrencyInput(d.payment);
     if (!balance || isNaN(rate) || rate < 0 || !payment) continue;
     const monthlyInterest = (balance * (rate / 100)) / 12;
-    if (payment <= monthlyInterest && rate > 0) continue; // payment doesn't cover interest
+    if (payment <= monthlyInterest && rate > 0) continue;
     parsed.push({ name: d.name || "Debt", balance, rate, monthlyPayment: payment });
   }
 
   if (parsed.length === 0) return null;
 
-  // Sort by strategy
   const sorted = [...parsed].sort((a, b) =>
     strategy === "snowball"
-      ? a.balance - b.balance          // smallest balance first
-      : b.rate - a.rate                // highest rate first
+      ? a.balance - b.balance
+      : b.rate - a.rate
   );
 
-  // Simulation state
   type LoanState = {
     name: string;
     originalBalance: number;
@@ -349,8 +335,10 @@ export function computeDebtSchedule(
     paid: false,
   }));
 
+  // Fixed total pool — same logic as debugDebtSchedule
+  const totalMinimums = states.reduce((s, l) => s + l.minPayment, 0);
+
   let month = 0;
-  let extraPool = 0;
   let firstPayoffMonths: number | null = null;
   let firstPayoffName = "";
   const MAX_MONTHS = 600;
@@ -359,8 +347,13 @@ export function computeDebtSchedule(
     if (states.every(s => s.paid)) break;
     month++;
 
-    // Target: first unpaid debt in sorted order
     const targetIdx = states.findIndex(s => !s.paid);
+
+    // Mirror debugDebtSchedule exactly
+    const otherMins = states
+      .filter((s, i) => !s.paid && i !== targetIdx)
+      .reduce((sum, s) => sum + s.minPayment, 0);
+    const targetPayment = (totalMinimums - otherMins) + extraMonthly;
 
     states.forEach((loan, idx) => {
       if (loan.paid) return;
@@ -368,9 +361,7 @@ export function computeDebtSchedule(
       const interest = loan.balance * loan.monthlyRate;
       loan.interestAccrued += interest;
 
-      const payment = idx === targetIdx
-        ? loan.minPayment + extraPool
-        : loan.minPayment;
+      const payment = idx === targetIdx ? targetPayment : loan.minPayment;
 
       const principal = Math.min(payment - interest, loan.balance);
       loan.balance = Math.max(0, loan.balance - principal);
@@ -379,7 +370,6 @@ export function computeDebtSchedule(
         loan.paid = true;
         loan.balance = 0;
         loan.monthsPaidOff = month;
-        extraPool += loan.minPayment;
 
         if (firstPayoffMonths === null) {
           firstPayoffMonths = month;
@@ -389,7 +379,6 @@ export function computeDebtSchedule(
     });
   }
 
-  // Build per-debt results
   const debtResults: DebtResult[] = states.map(s => ({
     name: s.name,
     balance: s.originalBalance,
@@ -418,27 +407,107 @@ export function computeDebtSchedule(
 
 /**
  * Runs both simulations and returns a unified comparison result.
- * Handles the edge case where all debts have identical rates.
  */
 export function computeDebtComparison(
   debts: DebtInput[],
+  extraMonthly: number = 0,
 ): DebtComparisonResult | null {
-  const avalanche = computeDebtSchedule(debts, "avalanche");
-  const snowball = computeDebtSchedule(debts, "snowball");
+  const avalanche = computeDebtSchedule(debts, "avalanche", extraMonthly);
+  const snowball = computeDebtSchedule(debts, "snowball", extraMonthly);
 
   if (!avalanche || !snowball) return null;
-
-  const rates = debts
-    .map(d => parseFloat(d.rate))
-    .filter(r => !isNaN(r) && r >= 0);
-
-  const identicalRates = rates.length > 0 && rates.every(r => r === rates[0]);
 
   return {
     avalanche,
     snowball,
     interestDelta: snowball.totalInterest - avalanche.totalInterest,
     firstWinDelta: avalanche.firstPayoffMonths - snowball.firstPayoffMonths,
-    identicalRates,
   };
+}
+
+/**
+ * Debug function — prints a month-by-month schedule to console.
+ * Remove before committing to production.
+ */
+export function debugDebtSchedule(
+  debts: DebtInput[],
+  strategy: DebtStrategy,
+  extraMonthly: number = 0,
+): string {
+  type ParsedDebt = {
+    name: string;
+    balance: number;
+    rate: number;
+    monthlyPayment: number;
+  };
+
+  const parsed: ParsedDebt[] = [];
+  for (const d of debts) {
+    const balance = parseCurrencyInput(d.balance);
+    const rate = parseFloat(d.rate);
+    const payment = parseCurrencyInput(d.payment);
+    if (!balance || isNaN(rate) || rate < 0 || !payment) continue;
+    const monthlyInterest = (balance * (rate / 100)) / 12;
+    if (payment <= monthlyInterest && rate > 0) continue;
+    parsed.push({ name: d.name || "Debt", balance, rate, monthlyPayment: payment });
+  }
+
+  if (parsed.length === 0) return "no valid debts";
+
+  const sorted = [...parsed].sort((a, b) =>
+    strategy === "snowball"
+      ? a.balance - b.balance
+      : b.rate - a.rate
+  );
+
+  type LoanState = {
+    name: string;
+    balance: number;
+    monthlyRate: number;
+    minPayment: number;
+    paid: boolean;
+  };
+
+  const states: LoanState[] = sorted.map(d => ({
+    name: d.name,
+    balance: d.balance,
+    monthlyRate: d.rate / 100 / 12,
+    minPayment: d.monthlyPayment,
+    paid: false,
+  }));
+
+  const totalMinimums = states.reduce((s, l) => s + l.minPayment, 0);
+  const lines: string[] = [];
+
+  lines.push(`Month | ${sorted.map(d => d.name.padEnd(12)).join(" | ")} | Target | Extra`);
+  lines.push("-".repeat(80));
+
+  let month = 0;
+  const MAX_MONTHS = 600;
+
+  while (month < MAX_MONTHS) {
+    if (states.every(s => s.paid)) break;
+    month++;
+
+    const targetIdx = states.findIndex(s => !s.paid);
+    const otherMins = states
+      .filter((s, i) => !s.paid && i !== targetIdx)
+      .reduce((sum, s) => sum + s.minPayment, 0);
+    const targetPayment = (totalMinimums - otherMins) + extraMonthly;
+
+    const payments: string[] = [];
+    states.forEach((loan, idx) => {
+      if (loan.paid) { payments.push("PAID".padEnd(12)); return; }
+      const interest = loan.balance * loan.monthlyRate;
+      const payment = idx === targetIdx ? targetPayment : loan.minPayment;
+      const principal = Math.min(payment - interest, loan.balance);
+      loan.balance = Math.max(0, loan.balance - principal);
+      if (loan.balance <= 0.01) { loan.paid = true; loan.balance = 0; }
+      payments.push(`$${payment.toFixed(0).padStart(6)} (bal:$${loan.balance.toFixed(0).padStart(6)})`);
+    });
+
+    lines.push(`${String(month).padStart(3)}   | ${payments.join(" | ")} | ${sorted[targetIdx]?.name} | extra:$${extraMonthly}`);
+  }
+
+  return lines.join("\n");
 }
