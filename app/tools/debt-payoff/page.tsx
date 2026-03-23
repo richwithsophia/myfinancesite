@@ -292,7 +292,7 @@ export default function DebtPayoffCalculator() {
                                     )}
                                 />
                                 {/* ── EXTRA PAYMENT ── */}
-                                <div className="rws-card-white" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                               <div className="rws-card-white" style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1.25rem" }}>
                                     <MoneyInput
                                         label="Extra monthly payment"
                                         hint="Amount above your minimums directed at your target debt each month. Defaults to $100."
