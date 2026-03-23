@@ -15,24 +15,24 @@ const tools = [
     cta: "Calculate my net worth →",
   },
   {
+    href: "/tools/student-loan", emoji: "🎓",
+    available: true, badge: "Live",
+    title: "Student Loan Payoff Calculator",
+    body: "See exactly when you'll be debt-free and how much interest you'll pay across all your student loans — live as you type.",
+    cta: "Calculate my payoff →",
+  },
+  {
+    href: "/tools/mortgage", emoji: "🏠",
+    available: true, badge: "Live",
+    title: "Mortgage Calculator",
+    body: "See your full monthly payment breakdown and exactly how much you'll pay over the life of your loan — including taxes, insurance, and HOA.",
+    cta: "Calculate my mortgage →",
+  },
+  {
     href: "#", emoji: "📊",
     available: false, badge: "Coming Soon",
     title: "Investment Growth Calculator",
     body: "See how your money grows over time with compound interest. Plug in your starting amount, monthly contribution, and time horizon.",
-    cta: "Notify me →",
-  },
-  {
-    href: "#", emoji: "🎓",
-    available: false, badge: "Coming Soon",
-    title: "Student Loan Payoff Planner",
-    body: "Compare payoff strategies side by side — avalanche vs. snowball — and see exactly how much interest you'll save.",
-    cta: "Notify me →",
-  },
-  {
-    href: "#", emoji: "🏠",
-    available: false, badge: "Coming Soon",
-    title: "Rent vs. Buy Calculator",
-    body: "Stop guessing. Enter your market, income, and savings to see whether buying or renting actually makes more financial sense for you.",
     cta: "Notify me →",
   },
 ];
